@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstring>
 
 #if defined(_WIN32)
@@ -735,6 +736,29 @@ int FFmpegVideoDecoder::submit_decode_unit(PDECODE_UNIT decode_unit) {
 
         using clock = std::chrono::steady_clock;
         const auto packetArrival = clock::now();
+
+        // Track inter-frame delta of host presentation timestamps.
+        // presentationTimeMs is host-wall-clock milliseconds; deltas near
+        // 1000/fps (e.g. ~16.7 ms at 60 fps) confirm the host metronomic tick.
+        const uint32_t currentPtsMs = decode_unit->presentationTimeMs;
+        if (currentPtsMs != 0) {
+            if (m_last_pts_valid && m_last_pts_ms != 0 &&
+                currentPtsMs >= m_last_pts_ms) {
+                const uint32_t delta = currentPtsMs - m_last_pts_ms;
+                // Accept deltas in the range [1, 200] ms (5 fps – 1000 fps).
+                if (delta >= 1 && delta <= 200) {
+                    m_pts_delta_window_sum += delta;
+                    m_pts_delta_window_sumsq +=
+                        static_cast<double>(delta) * delta;
+                    if (delta > m_pts_delta_window_max)
+                        m_pts_delta_window_max = delta;
+                    m_pts_delta_window_count++;
+                }
+            }
+            m_last_pts_ms = currentPtsMs;
+            m_last_pts_valid = true;
+        }
+
         artemis::streaming::FramePipelineTelemetry::instance().noteFirstPacket(
             static_cast<size_t>(decode_unit->fullLength));
 
@@ -951,6 +975,30 @@ int FFmpegVideoDecoder::submit_decode_unit(PDECODE_UNIT decode_unit) {
                     pipe.queueWaitMs;
                 m_video_decode_stats_cache.current_client_pipeline_ms =
                     pipe.clientPipelineMs;
+
+                // Compute pts delta stats for the closing window, then reset.
+                if (m_pts_delta_window_count > 0) {
+                    const double mean = m_pts_delta_window_sum /
+                                        m_pts_delta_window_count;
+                    const double variance =
+                        (m_pts_delta_window_sumsq / m_pts_delta_window_count) -
+                        (mean * mean);
+                    m_video_decode_stats_cache.current_pts_delta_mean_ms =
+                        static_cast<float>(mean);
+                    m_video_decode_stats_cache.current_pts_delta_max_ms =
+                        static_cast<float>(m_pts_delta_window_max);
+                    m_video_decode_stats_cache.current_pts_delta_stddev_ms =
+                        static_cast<float>(variance > 0.0 ?
+                            std::sqrt(variance) : 0.0);
+                } else {
+                    m_video_decode_stats_cache.current_pts_delta_mean_ms = 0.0f;
+                    m_video_decode_stats_cache.current_pts_delta_max_ms = 0.0f;
+                    m_video_decode_stats_cache.current_pts_delta_stddev_ms = 0.0f;
+                }
+                m_pts_delta_window_sum = 0.0;
+                m_pts_delta_window_sumsq = 0.0;
+                m_pts_delta_window_max = 0;
+                m_pts_delta_window_count = 0;
 
                 m_stats_window_start = after_decode;
                 m_stats_window_bytes = 0;

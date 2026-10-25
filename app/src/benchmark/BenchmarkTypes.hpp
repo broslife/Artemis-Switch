@@ -35,6 +35,12 @@ struct BenchmarkSample {
     uint64_t queueOverflowDrops = 0;
     uint64_t queuePacingSkips = 0;
     uint64_t queueResyncs = 0;
+
+    // Inter-frame deltas of DECODE_UNIT.presentationTimeMs (host clock, ms).
+    // Zero until enough frames arrive in the 250 ms decode window.
+    float ptsDeltaMeanMs = 0.0f;
+    float ptsDeltaMaxMs = 0.0f;
+    float ptsDeltaStddevMs = 0.0f;
 };
 
 struct DistributionSummary {

@@ -120,6 +120,9 @@ void BenchmarkRuntime::captureSample() {
     sample.queueOverflowDrops = holder.getFrameQueueOverflowDropStat();
     sample.queuePacingSkips = holder.getFrameQueuePacingSkipStat();
     sample.queueResyncs = holder.getFrameQueuePlayoutResyncStat();
+    sample.ptsDeltaMeanMs = decode.current_pts_delta_mean_ms;
+    sample.ptsDeltaMaxMs = decode.current_pts_delta_max_ms;
+    sample.ptsDeltaStddevMs = decode.current_pts_delta_stddev_ms;
 
     std::lock_guard lock(m_mutex);
     m_accumulator.addSample(sample);

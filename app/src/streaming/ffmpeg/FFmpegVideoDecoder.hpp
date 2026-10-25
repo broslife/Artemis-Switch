@@ -75,6 +75,15 @@ class FFmpegVideoDecoder : public IFFmpegVideoDecoder {
     bool m_stats_window_started = false;
     uint64_t m_stats_window_bytes = 0;
 
+    // Accumulators for DECODE_UNIT.presentationTimeMs inter-frame deltas.
+    // Reset at each stats-window flush; never copied into VideoDecodeStats.
+    uint32_t m_last_pts_ms = 0;
+    bool m_last_pts_valid = false;
+    double m_pts_delta_window_sum = 0.0;
+    double m_pts_delta_window_sumsq = 0.0;
+    uint32_t m_pts_delta_window_max = 0;
+    uint32_t m_pts_delta_window_count = 0;
+
     char* m_ffmpeg_buffer = nullptr;
   #if defined(PLATFORM_ANDROID)
     std::vector<uint8_t> m_pending_extradata;

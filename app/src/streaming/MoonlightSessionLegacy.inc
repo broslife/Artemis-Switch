@@ -8,6 +8,7 @@
 #include "StreamProfileStore.hpp"
 #include "borealis.hpp"
 #include "../features/host/CodecCapabilities.hpp"
+#include "benchmark/SessionLog.hpp"
 #include <string.h>
 
 #if defined(PLATFORM_IOS) || defined(PLATFORM_VISIONOS)
@@ -102,6 +103,20 @@ void MoonlightSession::connection_started() {
     active_session_ptr()->m_stop_requested = false;
     active_session_ptr()->m_is_active = true;
     active_session_ptr()->m_restart_in_progress = false;
+
+    // Start the always-on session log.
+    {
+        const auto* s = active_session_ptr();
+        artemis::benchmark::SessionLogConfig logCfg;
+        logCfg.host = s->m_address;
+        logCfg.width = s->m_config.width;
+        logCfg.height = s->m_config.height;
+        logCfg.fps = s->m_config.fps;
+        logCfg.bitrateKbps = s->m_config.bitrate; // already in kbps
+        logCfg.lowLatencyPacing = Settings::instance().low_latency_pacing();
+        logCfg.queueSize = 3; // default; updated by AVFrameHolder at runtime
+        artemis::benchmark::SessionLog::instance().start(logCfg);
+    }
 }
 
 void MoonlightSession::connection_terminated(int error_code) {
@@ -113,6 +128,9 @@ void MoonlightSession::connection_terminated(int error_code) {
     const auto action = artemis::streaming::connectionTerminatedAction(
         active_session_ptr()->m_stop_requested,
         active_session_ptr()->m_restart_in_progress.load(), error_code);
+
+    // Stop the session log before marking the session inactive.
+    artemis::benchmark::SessionLog::instance().stop();
 
     // Never LiStopConnection / start() here. This callback runs on a Moonlight
     // worker thread; tearing down deko3d there orange-screens the Switch when

@@ -256,8 +256,26 @@ if (DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
     endif ()
 endif ()
 
+# Embed the short git hash so the session log and About tab identify the build.
+find_package(Git QUIET)
+if(GIT_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        OUTPUT_VARIABLE ARTEMIS_BUILD_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+        RESULT_VARIABLE _git_result)
+    if(NOT _git_result EQUAL 0)
+        set(ARTEMIS_BUILD_HASH "unknown")
+    endif()
+else()
+    set(ARTEMIS_BUILD_HASH "unknown")
+endif()
+
 add_definitions(
         -DAPP_VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}"
+        -DARTEMIS_BUILD_HASH="${ARTEMIS_BUILD_HASH}"
         -Dcimg_display=0
         -Dcimg_use_png
         -Dcimg_no_system_calls

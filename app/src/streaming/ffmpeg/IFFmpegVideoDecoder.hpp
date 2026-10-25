@@ -40,6 +40,12 @@ struct VideoDecodeStats {
     float current_queue_wait_ms;
     float current_client_pipeline_ms;
 
+    // Per-window stats derived from DECODE_UNIT.presentationTimeMs deltas.
+    // Zero until enough frames have been received.
+    float current_pts_delta_mean_ms;
+    float current_pts_delta_max_ms;
+    float current_pts_delta_stddev_ms;
+
     uint64_t measurement_start_timestamp;
     // Steady-clock micros for the open progress window (0 = unset).
     uint64_t measurement_start_us;

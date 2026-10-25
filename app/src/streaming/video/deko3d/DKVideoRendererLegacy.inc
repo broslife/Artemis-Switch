@@ -1360,9 +1360,14 @@ void DKVideoRenderer::draw(NVGcontext* vg, int width, int height, AVFrame* frame
             std::chrono::duration<double>(after_render_tp - s_stats_window_start)
                 .count();
         const float elapsed_time = static_cast<float>(elapsed_sec * 1000.0);
+        // Count all frames drawn in the window; opening the window at
+        // after_render_tp of the previous flush means every frame between
+        // two flushes is a complete draw cycle, so N frames / elapsed_sec
+        // gives the correct rate (the old code used N-1, yielding ~56 fps
+        // instead of ~60 at 60 fps with a 250 ms window).
         m_video_render_stats_cache.rendered_fps =
-            elapsed_time > 0.0f && m_video_render_stats_cache.rendered_frames > 1
-                ? (float)(m_video_render_stats_cache.rendered_frames - 1) /
+            elapsed_time > 0.0f && m_video_render_stats_cache.rendered_frames > 0
+                ? (float)(m_video_render_stats_cache.rendered_frames) /
                       (elapsed_time / 1000.0f)
                 : 0.0f;
 
