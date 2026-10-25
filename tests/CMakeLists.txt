@@ -152,6 +152,12 @@ target_include_directories(low_latency_frame_selection_test PRIVATE
 target_compile_features(low_latency_frame_selection_test PRIVATE cxx_std_20)
 add_test(NAME low_latency_frame_selection_test COMMAND low_latency_frame_selection_test)
 
+add_executable(slot_intervals_test slot_intervals_test.cpp)
+target_include_directories(slot_intervals_test PRIVATE
+    "${REPO_ROOT}/app/src/streaming")
+target_compile_features(slot_intervals_test PRIVATE cxx_std_20)
+add_test(NAME slot_intervals_test COMMAND slot_intervals_test)
+
 add_executable(frame_color_range_test
     "${REPO_ROOT}/tests/frame_color_range_test.cpp"
 )

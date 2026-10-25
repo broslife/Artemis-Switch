@@ -534,6 +534,50 @@ void StreamingView::draw(NVGcontext* vg, float x, float y, float width,
                 /*stats->video_render_stats.rendered_frames*/);
         }
 
+        {
+            // Per-second rates and the judder ruler (slots between new frames).
+            using sclock = std::chrono::steady_clock;
+            static sclock::time_point s_rate_start{};
+            static uint64_t s_prev_holds = 0, s_prev_skips = 0;
+            static artemis::streaming::SlotIntervalCounts s_prev_slots{};
+            static uint64_t s_holds_ps = 0, s_skips_ps = 0;
+            static artemis::streaming::SlotIntervalCounts s_slots_ps{};
+
+            auto& holder = AVFrameHolder::instance();
+            const uint64_t holds = holder.getFrameQueueScheduledHoldStat();
+            const uint64_t skips = holder.getFrameDropStat();
+            const auto slots = holder.getSlotIntervalCounts();
+            const auto nowTp = sclock::now();
+            if (holds < s_prev_holds || skips < s_prev_skips ||
+                slots.total() < s_prev_slots.total()) {
+                s_rate_start = {}; // new session: counters restarted
+            }
+            if (s_rate_start == sclock::time_point{}) {
+                s_rate_start = nowTp;
+                s_prev_holds = holds;
+                s_prev_skips = skips;
+                s_prev_slots = slots;
+            } else if (nowTp - s_rate_start >= std::chrono::seconds(1)) {
+                s_holds_ps = holds - s_prev_holds;
+                s_skips_ps = skips - s_prev_skips;
+                s_slots_ps = slots.since(s_prev_slots);
+                s_prev_holds = holds;
+                s_prev_skips = skips;
+                s_prev_slots = slots;
+                s_rate_start = nowTp;
+            }
+
+            statistics += fmt::format(
+                "Holds | skips per second: {} | {}\n"
+                "Judder (1 s) {:.0f} permille | n0 n1 n2 n3+: {} {} {} {}\n"
+                "Judder (session) {:.0f} permille | n0 n1 n2 n3+: {} {} {} {}\n",
+                s_holds_ps, s_skips_ps,
+                s_slots_ps.judderPermille(), s_slots_ps.n0, s_slots_ps.n1,
+                s_slots_ps.n2, s_slots_ps.n3plus,
+                slots.judderPermille(), slots.n0, slots.n1, slots.n2,
+                slots.n3plus);
+        }
+
         statistics += fmt::format("Frames queue underflows | skipped: {} | {}\n"
                                   "Queue empty | startup holds: {} | {}\n"
                                   "Queue overflow | paced skips: {} | {}\n"

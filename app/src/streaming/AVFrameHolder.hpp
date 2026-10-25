@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Singleton.hpp"
+#include "SlotIntervals.hpp"
 #include <chrono>
 #include <cmath>
 #include <deque>
@@ -154,7 +155,10 @@ class AVFrameHolder : public Singleton<AVFrameHolder> {
     }
 
     void get(const std::function<void(AVFrame*)>& fn) {
-        auto frame = m_frame_queue.pop();
+        bool consumed = false;
+        auto frame = m_frame_queue.pop(&consumed);
+        // One get() per draw tick: feed the judder ruler.
+        m_slot_intervals.onTick(consumed);
         if (frame) {
             fn(frame);
         }
@@ -168,7 +172,12 @@ class AVFrameHolder : public Singleton<AVFrameHolder> {
         m_frame_queue.recycleWriteFrame(frame);
     }
 
+    [[nodiscard]] artemis::streaming::SlotIntervalCounts getSlotIntervalCounts() const {
+        return m_slot_intervals.counts();
+    }
+
     void prepare(int streamFps, bool transferOwnership = false) {
+        m_slot_intervals.reset();
         m_frame_queue.configure(Settings::instance().frames_queue_size(),
                                 streamFps, transferOwnership,
                                 Settings::instance().low_latency_pacing());
@@ -202,4 +211,5 @@ class AVFrameHolder : public Singleton<AVFrameHolder> {
 
   private:
     AVFrameQueue m_frame_queue;
+    artemis::streaming::SlotIntervals m_slot_intervals;
 };

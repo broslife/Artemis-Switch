@@ -8,6 +8,8 @@
 #include <thread>
 #include <vector>
 
+#include "SlotIntervals.hpp"
+
 namespace artemis::benchmark {
 
 // Configuration captured when the stream session starts.
@@ -61,6 +63,8 @@ private:
     uint64_t m_prev_oflow_drops = 0;
     uint64_t m_prev_pacing_skips = 0;
     uint64_t m_prev_holds = 0;
+    artemis::streaming::SlotIntervalCounts m_prev_slots;
+    artemis::streaming::SlotIntervalCounts m_total_slots;
     uint32_t m_elapsed_sec = 0;
 
     // Session totals of the per-second counter deltas.
@@ -79,6 +83,7 @@ private:
     std::vector<float> m_rcv_ms_series;
     std::vector<float> m_dec_ms_series;
     std::vector<float> m_pts_max_series;
+    std::vector<float> m_judder_series;
 };
 
 } // namespace artemis::benchmark

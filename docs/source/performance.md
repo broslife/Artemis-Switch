@@ -63,6 +63,23 @@ Until enough present-cost samples exist, the gate uses a short default lead (~3 
 
 Inspired by Moonlight-Switch issue [#323](https://github.com/XITRIX/Moonlight-Switch/issues/323) (algorithm credit; Artemis implementation is opt-in).
 
+## Judder ruler and per-second counters
+
+The Debug overlay shows holds and skips **per second** plus a judder ruler. Each draw tick (one display slot) either shows a new frame or repeats the last one; the ruler counts how many slots pass between two consecutive new frames:
+
+| Bucket | Meaning |
+|---|---|
+| n0 | Two new frames in the same slot |
+| n1 | One slot apart (ideal for 60 fps on a 60 Hz screen) |
+| n2 | Two slots apart |
+| n3+ | Three or more slots apart |
+
+**Judder (permille)** is the share of intervals outside the most common bucket, so a steady 30 fps stream reads 0. It is shown for the last second and for the whole session. Lower is smoother.
+
+The same values go into the always-on session log (`sdmc:/switch/Artemis-Switch/logs/`) as the columns `judder`, `n0`, `n1`, `n2`, `n3plus`, with session totals in the summary. The ruler assumes one draw tick per display refresh.
+
+Idea adapted from the [Punktfunk](https://github.com/punktfunk/punktfunk) project.
+
 ## Startup timing
 
 Once per stream, telemetry records:

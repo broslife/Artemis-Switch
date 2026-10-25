@@ -125,11 +125,15 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << "#   sec  rfps  rcv_fps  dec_fps"
       << "  uflows/s  skips/s  oflows/s  pskips/s  holds/s"
       << "  qdepth  rcv_ms  dec_ms"
-      << "  pts_mean_ms  pts_max_ms  pts_std_ms\n"
+      << "  pts_mean_ms  pts_max_ms  pts_std_ms"
+      << "  judder_permille  n0  n1  n2  n3plus\n"
+      << "# n0..n3plus = display slots between two new frames (0, 1, 2, 3+);"
+      << " judder_permille = share outside the most common bucket.\n"
       << "sec\trfps\trcv_fps\tdec_fps"
       << "\tuflows\tskips\toflows\tpskips\tholds"
       << "\tqdepth\trcv_ms\tdec_ms"
-      << "\tpts_mean\tpts_max\tpts_std\n";
+      << "\tpts_mean\tpts_max\tpts_std"
+      << "\tjudder\tn0\tn1\tn2\tn3plus\n";
     return h.str();
 }
 
@@ -155,6 +159,9 @@ void SessionLog::start(const SessionLogConfig& config) {
     m_prev_oflow_drops = 0;
     m_prev_pacing_skips = 0;
     m_prev_holds = 0;
+    m_prev_slots = {};
+    m_total_slots = {};
+    m_judder_series.clear();
     m_elapsed_sec = 0;
     m_total_uflows = 0;
     m_total_skips = 0;
@@ -204,7 +211,14 @@ void SessionLog::stop() {
                    << "  skips=" << m_total_skips
                    << "  oflows=" << m_total_oflows
                    << "  pskips=" << m_total_pskips
-                   << "  holds=" << m_total_holds << "\n";
+                   << "  holds=" << m_total_holds << "\n"
+                   << "# Slots  n0=" << m_total_slots.n0
+                   << "  n1=" << m_total_slots.n1
+                   << "  n2=" << m_total_slots.n2
+                   << "  n3plus=" << m_total_slots.n3plus
+                   << "  judder_permille="
+                   << m_total_slots.judderPermille() << "\n";
+            appendSeriesSummary(m_file, "judder_permille", m_judder_series);
             appendSeriesSummary(m_file, "rendered_fps", m_rfps_series);
             appendSeriesSummary(m_file, "rcv_fps", m_rcv_fps_series);
             appendSeriesSummary(m_file, "dec_fps", m_dec_fps_series);
@@ -270,8 +284,15 @@ void SessionLog::captureLine() {
     m_total_pskips += d_pskips;
     m_total_holds += d_holds;
 
+    const auto slots = holder.getSlotIntervalCounts();
+    const auto d_slots = slots.since(m_prev_slots);
+    m_prev_slots = slots;
+    m_total_slots = slots;
+
     const float rfps = ren.rendered_fps;
     if (rfps > 0.0f) {
+        m_judder_series.push_back(
+            static_cast<float>(d_slots.judderPermille()));
         m_rfps_series.push_back(rfps);
         m_rcv_fps_series.push_back(dec.current_received_fps);
         m_dec_fps_series.push_back(dec.current_decoded_fps);
@@ -300,6 +321,12 @@ void SessionLog::captureLine() {
          << '\t' << dec.current_pts_delta_mean_ms
          << '\t' << dec.current_pts_delta_max_ms
          << '\t' << dec.current_pts_delta_stddev_ms
+         << std::setprecision(0)
+         << '\t' << d_slots.judderPermille()
+         << '\t' << d_slots.n0
+         << '\t' << d_slots.n1
+         << '\t' << d_slots.n2
+         << '\t' << d_slots.n3plus
          << '\n';
 
     m_elapsed_sec++;
