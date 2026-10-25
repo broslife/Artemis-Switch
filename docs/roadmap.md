@@ -42,7 +42,7 @@ Referência: `reference/punktfunk/` (cópia somente leitura; origem: `clients/an
 Cada etapa gera um build no GitHub Actions (.nro), o Bruno testa no Switch e envia o log de sessão (seção 8) antes da etapa seguinte.
 
 1. Corrigir `rendered_fps`. Registrar `presentationTimeMs` (passo 0). Criar o **log de sessão** (seção 8) e identificar o build (hash do commit) no log e no About/overlay. O log vem primeiro porque é o que permite avaliar todas as etapas seguintes.
-2. Régua de juder + contadores por segundo no overlay e no log (item 1 da seção 3).
+2. Régua de juder + contadores por segundo no overlay e no log (item 1 da seção 3). Também: trocar o autor do .nro (metadados NACP) de `antoinebou12` para `broslife` (`PROJECT_AUTHOR` em `CMakeLists.txt`, ~linha 183). Só o autor do .nro; manter nome/branding Artemis e os créditos. Os textos "by antoinebou12" do About (`resources/i18n/*/main.json`) ficam como estão, salvo pedido. O AGENTS.md já foi atualizado: todo .nro deve ter `broslife` como autor.
 3. Portar `CadenceClock` + `pace_slot` como modo novo e opcional (itens 2 e 3).
 4. `FrameStore` com as duas intenções Latência / Suave (itens 4 e 5).
 5. Watchdog de fallback (item 6).

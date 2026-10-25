@@ -24,7 +24,7 @@ Reference material from the Punktfunk project (MIT / Apache-2.0) is in `referenc
 - Every new presentation/pacing mode must be optional and keep a fallback to the current behavior (the current pacing stays the default until the new mode is proven on device).
 - Gate Switch-only or risky features so other platforms and CI keep working (see `docs/OTHER_PLATFORMS.md`). Keep pacing math (clock, slot selection, judder counting) in portable code that unit tests can cover without a Switch.
 - Credit XITRIX/Moonlight-Switch first in About/credits; keep the existing credits (Apollo, Artemis Classic, Moonlight, Artemide, Vibepollo, #323) and add Punktfunk.
-- Keep NRO/app author metadata and Artemis branding as they are; do not rebrand.
+- The NRO author metadata (`PROJECT_AUTHOR` in `CMakeLists.txt`) must always be `broslife` in every build. Keep the Artemis name/branding and existing credits as they are; do not rebrand otherwise.
 
 ## Existing behavior to preserve (do not change unless asked)
 
