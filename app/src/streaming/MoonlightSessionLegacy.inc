@@ -114,7 +114,8 @@ void MoonlightSession::connection_started() {
         logCfg.fps = s->m_config.fps;
         logCfg.bitrateKbps = s->m_config.bitrate; // already in kbps
         logCfg.lowLatencyPacing = Settings::instance().low_latency_pacing();
-        logCfg.queueSize = 3; // default; updated by AVFrameHolder at runtime
+        logCfg.cadencePacing = Settings::instance().cadence_pacing();
+        logCfg.queueSize = Settings::instance().frames_queue_size();
         logCfg.codec = Settings::instance().video_codec() == H264
                            ? "H264"
                            : (Settings::instance().video_codec() == AV1

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Singleton.hpp"
+#include "CadenceClock.hpp"
 #include "SlotIntervals.hpp"
 #include <chrono>
 #include <cmath>
@@ -24,6 +25,8 @@ struct TimedFrame {
     std::chrono::steady_clock::time_point networkComplete{};
     std::chrono::steady_clock::time_point decodeDone{};
     std::chrono::steady_clock::time_point queued{};
+    // Cadence mode only: due time in steady_clock nanoseconds (0 otherwise).
+    int64_t dueNs = 0;
     AVFrame* frame = nullptr;
 };
 
@@ -40,9 +43,16 @@ public:
 
     // The new lowLatency parameter selects the pacing path at configure time.
     // Defaults to false so all existing call-sites stay compatible.
+    // cadence selects the host-timestamp pacing mode and takes priority over
+    // lowLatency when both are set.
     void configure(size_t queueLimit, int streamFps,
                    bool transferOwnershipEnabled,
-                   bool lowLatency = false);
+                   bool lowLatency = false, bool cadence = false);
+
+    // Host presentation timestamp (microseconds) of the packet being decoded;
+    // attached to the next frame pushed. 0 means unknown.
+    void setSourcePtsUs(uint64_t srcPtsUs);
+    [[nodiscard]] artemis::streaming::CadenceHealth getCadenceHealth() const;
 
     static size_t capacityFor(size_t configuredQueueSize);
 
@@ -84,6 +94,10 @@ private:
     void resetArrivalRateEstimatorLocked();
     void trimToPlayoutWindowLocked();
 
+    // Cadence mode: set tf.dueNs from the pending host timestamp.
+    void stampCadenceLocked(TimedFrame& tf,
+                            std::chrono::steady_clock::time_point now);
+
     // Low-latency alpha-beta filter
     void updateLLFilterLocked(std::chrono::steady_clock::time_point now,
                                std::chrono::steady_clock::time_point& outNextEstimate);
@@ -100,6 +114,11 @@ private:
     int    streamFps           = 0;
     bool   transferOwnership   = false;
     bool   lowLatency          = false;
+    bool   cadence             = false;
+
+    // ---- Cadence pacing state ----
+    artemis::streaming::CadenceClock cadenceClock;
+    uint64_t pendingSrcPtsUs   = 0;
 
     // ---- Legacy pacing state ----
     std::chrono::nanoseconds              adaptiveFrameInterval{0};
@@ -180,7 +199,16 @@ class AVFrameHolder : public Singleton<AVFrameHolder> {
         m_slot_intervals.reset();
         m_frame_queue.configure(Settings::instance().frames_queue_size(),
                                 streamFps, transferOwnership,
-                                Settings::instance().low_latency_pacing());
+                                Settings::instance().low_latency_pacing(),
+                                Settings::instance().cadence_pacing());
+    }
+
+    void setSourcePtsUs(uint64_t srcPtsUs) {
+        m_frame_queue.setSourcePtsUs(srcPtsUs);
+    }
+
+    [[nodiscard]] artemis::streaming::CadenceHealth getCadenceHealth() const {
+        return m_frame_queue.getCadenceHealth();
     }
 
     void cleanup() {

@@ -263,6 +263,12 @@ ArtemisSettingsTab::ArtemisSettingsTab() {
                                    enabled);
                                Settings::instance().save();
                            });
+    cadencePacing->init("artemis/settings/cadence_pacing"_i18n,
+                        Settings::instance().cadence_pacing(),
+                        [](bool enabled) {
+                            Settings::instance().set_cadence_pacing(enabled);
+                            Settings::instance().save();
+                        });
 
     {
         int queueSize = Settings::instance().frames_queue_size();
@@ -337,6 +343,12 @@ ArtemisSettingsTab::ArtemisSettingsTab() {
                                    enabled);
                                Settings::instance().save();
                            });
+    cadencePacing->init("artemis/settings/cadence_pacing"_i18n,
+                        Settings::instance().cadence_pacing(),
+                        [](bool enabled) {
+                            Settings::instance().set_cadence_pacing(enabled);
+                            Settings::instance().save();
+                        });
     framesQueueSize->init("artemis/settings/frames_queue_size"_i18n,
                           {"1", "2", "3", "4", "5"},
                           std::clamp(Settings::instance().frames_queue_size(),

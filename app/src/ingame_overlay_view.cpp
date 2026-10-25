@@ -929,6 +929,12 @@ OptionsTab::OptionsTab(StreamingView* streamView) : streamView(streamView) {
             Settings::instance().set_low_latency_pacing(value);
             Settings::instance().save();
         });
+    optionsCadencePacing->init(
+        "artemis/settings/cadence_pacing"_i18n,
+        Settings::instance().cadence_pacing(), [](bool value) {
+            Settings::instance().set_cadence_pacing(value);
+            Settings::instance().save();
+        });
 
     {
         auto options =

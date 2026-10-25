@@ -63,6 +63,12 @@ Until enough present-cost samples exist, the gate uses a short default lead (~3 
 
 Inspired by Moonlight-Switch issue [#323](https://github.com/XITRIX/Moonlight-Switch/issues/323) (algorithm credit; Artemis implementation is opt-in).
 
+## Cadence pacing (experimental)
+
+Off by default. Instead of showing a frame when it arrives, the client reads the timestamp the host put on it and keeps that rhythm: due time = host timestamp + tracked offset + a small cushion (about twice the typical arrival deviation, never more than one frame). At each display tick the newest frame whose due time has passed is shown, older due frames are dropped, and the last image repeats when nothing is due.
+
+Logic adapted from [Punktfunk](https://github.com/punktfunk/punktfunk). It evens out network jitter between frames; it cannot hide a frame that never arrives. The session log records `late` (frame already past due on arrival), `reanchors` (the clock gave up tracking) and the current cushion. With non-Punktfunk hosts the timestamp may mean something else, so keep this mode optional.
+
 ## Judder ruler and per-second counters
 
 The Debug overlay shows holds and skips **per second** plus a judder ruler. Each draw tick (one display slot) either shows a new frame or repeats the last one; the ruler counts how many slots pass between two consecutive new frames:
@@ -76,7 +82,7 @@ The Debug overlay shows holds and skips **per second** plus a judder ruler. Each
 
 **Judder (permille)** is the share of intervals outside the most common bucket, so a steady 30 fps stream reads 0. It is shown for the last second and for the whole session. Lower is smoother.
 
-The same values go into the always-on session log (`sdmc:/switch/Artemis-Switch/logs/`) as the columns `judder`, `n0`, `n1`, `n2`, `n3plus`, with session totals in the summary. The ruler assumes one draw tick per display refresh.
+The same values go into the always-on session log (`sdmc:/switch/Artemis-Switch/logs/`) as the columns `judder`, `n0`, `n1`, `n2`, `n3plus`, plus `netdrops` (frames lost on the network), with session totals in the summary. The ruler assumes one draw tick per display refresh.
 
 Idea adapted from the [Punktfunk](https://github.com/punktfunk/punktfunk) project.
 

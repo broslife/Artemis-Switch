@@ -76,8 +76,9 @@ static std::string makeLogPath(const SessionLogConfig& cfg) {
     char dateBuf[32]{};
     std::strftime(dateBuf, sizeof(dateBuf), "%Y-%m-%dT%H-%M-%S", &tm);
 
-    const std::string mode =
-        cfg.lowLatencyPacing ? "lowlat" : "legacy";
+    const std::string mode = cfg.cadencePacing
+                                 ? "cadence"
+                                 : (cfg.lowLatencyPacing ? "lowlat" : "legacy");
 
     std::ostringstream name;
     name << dateBuf << '_' << safeFilePart(cfg.host) << '_' << mode << ".log";
@@ -116,7 +117,10 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << " @ " << cfg.fps << " fps"
       << "  Codec: " << cfg.codec
       << "  Bitrate: " << cfg.bitrateKbps << " kbps\n"
-      << "# Pacing: " << (cfg.lowLatencyPacing ? "low-latency" : "legacy")
+      << "# Pacing: "
+      << (cfg.cadencePacing
+              ? "cadence"
+              : (cfg.lowLatencyPacing ? "low-latency" : "legacy"))
       << "  QueueSize: " << cfg.queueSize << "\n"
       << "# Switch: " << meta.operationMode << "\n"
       << "# File: " << logPath << "\n"
@@ -126,14 +130,18 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << "  uflows/s  skips/s  oflows/s  pskips/s  holds/s"
       << "  qdepth  rcv_ms  dec_ms"
       << "  pts_mean_ms  pts_max_ms  pts_std_ms"
-      << "  judder_permille  n0  n1  n2  n3plus\n"
+      << "  judder_permille  n0  n1  n2  n3plus"
+      << "  netdrops/s  late/s  reanchors/s  cushion_ms\n"
       << "# n0..n3plus = display slots between two new frames (0, 1, 2, 3+);"
       << " judder_permille = share outside the most common bucket.\n"
+      << "# netdrops = frames lost on the network; late, reanchors, cushion_ms"
+      << " are only filled in cadence mode.\n"
       << "sec\trfps\trcv_fps\tdec_fps"
       << "\tuflows\tskips\toflows\tpskips\tholds"
       << "\tqdepth\trcv_ms\tdec_ms"
       << "\tpts_mean\tpts_max\tpts_std"
-      << "\tjudder\tn0\tn1\tn2\tn3plus\n";
+      << "\tjudder\tn0\tn1\tn2\tn3plus"
+      << "\tnetdrops\tlate\treanchors\tcushion\n";
     return h.str();
 }
 
@@ -159,6 +167,12 @@ void SessionLog::start(const SessionLogConfig& config) {
     m_prev_oflow_drops = 0;
     m_prev_pacing_skips = 0;
     m_prev_holds = 0;
+    m_prev_net_drops = 0;
+    m_prev_late = 0;
+    m_prev_reanchors = 0;
+    m_total_net_drops = 0;
+    m_total_late = 0;
+    m_total_reanchors = 0;
     m_prev_slots = {};
     m_total_slots = {};
     m_judder_series.clear();
@@ -217,7 +231,10 @@ void SessionLog::stop() {
                    << "  n2=" << m_total_slots.n2
                    << "  n3plus=" << m_total_slots.n3plus
                    << "  judder_permille="
-                   << m_total_slots.judderPermille() << "\n";
+                   << m_total_slots.judderPermille() << "\n"
+                   << "# Network  netdrops=" << m_total_net_drops
+                   << "  cadence_late=" << m_total_late
+                   << "  cadence_reanchors=" << m_total_reanchors << "\n";
             appendSeriesSummary(m_file, "judder_permille", m_judder_series);
             appendSeriesSummary(m_file, "rendered_fps", m_rfps_series);
             appendSeriesSummary(m_file, "rcv_fps", m_rcv_fps_series);
@@ -289,6 +306,24 @@ void SessionLog::captureLine() {
     m_prev_slots = slots;
     m_total_slots = slots;
 
+    // Cumulative in this session; clamp keeps a counter reset from underflowing.
+    const uint64_t netDrops = dec.network_dropped_frames;
+    const uint64_t d_netDrops =
+        netDrops >= m_prev_net_drops ? netDrops - m_prev_net_drops : 0;
+    m_prev_net_drops = netDrops;
+    m_total_net_drops += d_netDrops;
+
+    const auto cadence = holder.getCadenceHealth();
+    const uint64_t d_late =
+        cadence.late >= m_prev_late ? cadence.late - m_prev_late : 0;
+    const uint64_t d_reanchors = cadence.reanchors >= m_prev_reanchors
+                                     ? cadence.reanchors - m_prev_reanchors
+                                     : 0;
+    m_prev_late = cadence.late;
+    m_prev_reanchors = cadence.reanchors;
+    m_total_late += d_late;
+    m_total_reanchors += d_reanchors;
+
     const float rfps = ren.rendered_fps;
     if (rfps > 0.0f) {
         m_judder_series.push_back(
@@ -327,6 +362,11 @@ void SessionLog::captureLine() {
          << '\t' << d_slots.n1
          << '\t' << d_slots.n2
          << '\t' << d_slots.n3plus
+         << '\t' << d_netDrops
+         << '\t' << d_late
+         << '\t' << d_reanchors
+         << std::setprecision(2)
+         << '\t' << static_cast<double>(cadence.cushionNs) / 1.0e6
          << '\n';
 
     m_elapsed_sec++;

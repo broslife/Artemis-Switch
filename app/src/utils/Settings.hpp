@@ -325,6 +325,8 @@ class Settings : public Singleton<Settings> {
 
     void set_low_latency_pacing(bool value) { m_low_latency_pacing = value; }
     [[nodiscard]] bool low_latency_pacing() const { return m_low_latency_pacing; }
+    void set_cadence_pacing(bool value) { m_cadence_pacing = value; }
+    [[nodiscard]] bool cadence_pacing() const { return m_cadence_pacing; }
 
     void set_sops(bool sops) { m_sops = sops; }
     [[nodiscard]] bool sops() const { return m_sops; }
@@ -616,6 +618,7 @@ class Settings : public Singleton<Settings> {
     int m_decoder_threads = 4;
     int m_frames_queue_size = 3;
     bool m_low_latency_pacing = false;
+    bool m_cadence_pacing = false;
     bool m_sops = false;
     bool m_play_audio = false;
     bool m_wireguard_enabled = false;

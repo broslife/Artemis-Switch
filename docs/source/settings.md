@@ -22,6 +22,7 @@ Bitrate, codec, resolution, and most stream fields apply on the **next** connect
 | Control | Default | Applies | Notes |
 |---|---|---|---|
 | Low latency pacing | Off | Next stream / Options live | Adaptive deadline + latest-frame-wins |
+| Cadence pacing (experimental) | Off | Next stream / Options live | Paces by the host timestamp; takes priority over Low latency pacing |
 | Frame queue size | 3 | Next stream | 1–5; LL targets 0–1 buffered |
 | Full-range video | Off | Next stream / Options live | Honored on NVTEGRA when forced |
 | FSR preset | Off | Profile only | Performance / Balanced / Quality |
@@ -257,6 +258,9 @@ Packet-loss guard
 
 Low latency pacing
 : Adaptive present-deadline gate with aggressive latest-frame-wins. Uses measured render/GPU cost instead of a fixed 6 ms lead. **Off by default**; can stutter more on unstable Wi-Fi. Also on overlay **Options**.
+
+Cadence pacing (experimental)
+: Shows frames on the rhythm stamped by the host instead of the instant they arrive, with a small cushion sized from the measured arrival jitter. **Off by default**; takes priority over Low latency pacing when both are on. Falls back to arrival time for frames without a host timestamp. Also on overlay **Options**. Global setting only (not stored in stream profiles yet).
 
 Frame queue size
 : How many decoded frames to keep (1–5, default 3). Low latency pacing still targets at most one buffered frame.

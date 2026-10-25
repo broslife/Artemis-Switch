@@ -158,6 +158,12 @@ target_include_directories(slot_intervals_test PRIVATE
 target_compile_features(slot_intervals_test PRIVATE cxx_std_20)
 add_test(NAME slot_intervals_test COMMAND slot_intervals_test)
 
+add_executable(cadence_clock_test cadence_clock_test.cpp)
+target_include_directories(cadence_clock_test PRIVATE
+    "${REPO_ROOT}/app/src/streaming")
+target_compile_features(cadence_clock_test PRIVATE cxx_std_20)
+add_test(NAME cadence_clock_test COMMAND cadence_clock_test)
+
 add_executable(frame_color_range_test
     "${REPO_ROOT}/tests/frame_color_range_test.cpp"
 )

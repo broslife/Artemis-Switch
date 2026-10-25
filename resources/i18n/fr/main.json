@@ -78,6 +78,8 @@
             "prevent_packet_loss": "Protection des paquets",
             "low_latency_pacing": "Cadence faible latence",
             "low_latency_pacing_hint": "Échéance de présentation adaptative et last-frame-wins ; moins de latence, peut saccader sur Wi-Fi instable",
+            "cadence_pacing": "Cadence par horodatage (expérimental)",
+            "cadence_pacing_hint": "Cadence les images selon l'horodatage de l'hôte plutôt que l'arrivée ; rythme plus régulier sur un hôte stable. Prioritaire sur la cadence faible latence. Désactivé par défaut.",
             "frames_queue_size": "Taille de la file d'images",
             "frames_queue_size_hint": "Images tamponnées avant présentation (1–5). La faible latence limite la cible à 0–1.",
             "packet_loss_unverified": "Avec taille Auto/1392, utilise 1024 octets pour les liens MTU bas / VPN. Sunshine peut encore limiter packetsize côté hôte.",

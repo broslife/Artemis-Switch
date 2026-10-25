@@ -23,6 +23,7 @@ private:
     BRLS_BIND(brls::BooleanCell, forceFullRange, "force_full_range");
     BRLS_BIND(brls::BooleanCell, preventPacketLoss, "prevent_packet_loss");
     BRLS_BIND(brls::BooleanCell, lowLatencyPacing, "low_latency_pacing");
+    BRLS_BIND(brls::BooleanCell, cadencePacing, "cadence_pacing");
     BRLS_BIND(brls::SelectorCell, framesQueueSize, "frames_queue_size");
     BRLS_BIND(brls::SelectorCell, packetSize, "packet_size");
 

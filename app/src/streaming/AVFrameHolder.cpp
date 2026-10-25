@@ -9,6 +9,7 @@
 //
 
 #include "AVFrameHolder.hpp"
+#include "CadenceFrameSelection.hpp"
 #include "FramePipelineTelemetry.hpp"
 #include "LowLatencyFrameSelection.hpp"
 #include "PresentDeadline.hpp"
@@ -108,12 +109,15 @@ size_t AVFrameQueue::capacityFor(size_t configuredQueueSize) {
 
 void AVFrameQueue::configure(size_t queueLimit, int configuredStreamFps,
                              bool transferOwnershipEnabled,
-                             bool lowLatencyEnabled) {
+                             bool lowLatencyEnabled, bool cadenceEnabled) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     const size_t configuredDepth = std::max<size_t>(queueLimit, 1);
     limit         = capacityFor(configuredDepth);
-    lowLatency    = lowLatencyEnabled;
+    cadence       = cadenceEnabled;
+    lowLatency    = lowLatencyEnabled && !cadenceEnabled;
+    cadenceClock  = artemis::streaming::CadenceClock{};
+    pendingSrcPtsUs = 0;
 
     if (lowLatency) {
         // Cap buffering at 1 to minimise presentation latency.
@@ -173,7 +177,9 @@ bool AVFrameQueue::push(AVFrame* item) {
         recordArrivalLocked(now);
     }
 
-    queue.push_back(makeTimedFrame(queuedFrame, timeEstimate, now));
+    TimedFrame timed = makeTimedFrame(queuedFrame, timeEstimate, now);
+    stampCadenceLocked(timed, now);
+    queue.push_back(timed);
     pushesSincePop++;
     maxPushBurstStat = std::max(maxPushBurstStat, pushesSincePop);
 
@@ -185,6 +191,9 @@ bool AVFrameQueue::push(AVFrame* item) {
             recycleFrame(freeQueue, dropped);
             framesDroppedStat++;
             overflowDropStat++;
+        }
+        if (cadence) {
+            cadenceClock.reset();
         }
         if (lowLatency) {
             resetLLFilterLocked();
@@ -220,6 +229,45 @@ AVFrame* AVFrameQueue::pop(bool* consumed) {
     }
 
     const auto now = std::chrono::steady_clock::now();
+
+    // ========================================================================
+    // CADENCE PATH (host timestamps)
+    // ========================================================================
+    if (cadence) {
+        if (queue.empty()) {
+            if (bufferFrame) {
+                fakeFrameUsedStat++;
+                emptyQueueStat++;
+            }
+            return bufferFrame;
+        }
+
+        const int64_t nowNs =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                now.time_since_epoch())
+                .count();
+        if (!artemis::streaming::selectCadenceFrame(
+                queue, nowNs, [this](TimedFrame& dropped) {
+                    recycleFrame(freeQueue, dropped.frame);
+                    framesDroppedStat++;
+                    pacingSkipStat++;
+                })) {
+            scheduledHoldStat++;
+            return bufferFrame;
+        }
+
+        TimedFrame selected = queue.front();
+        queue.pop_front();
+        artemis::streaming::FramePipelineTelemetry::instance().noteFrameSelected(
+            selected.networkComplete, selected.decodeDone, now);
+        recycleFrame(freeQueue, bufferFrame);
+        bufferFrame = selected.frame;
+        localClockPacedFrameStat++;
+        if (consumed) {
+            *consumed = true;
+        }
+        return bufferFrame;
+    }
 
     // ========================================================================
     // LOW-LATENCY PATH
@@ -474,6 +522,35 @@ double AVFrameQueue::getEstimatedSourceFps() const {
     return estimatedSourceFps;
 }
 
+void AVFrameQueue::setSourcePtsUs(uint64_t srcPtsUs) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    pendingSrcPtsUs = srcPtsUs;
+}
+
+artemis::streaming::CadenceHealth AVFrameQueue::getCadenceHealth() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return cadenceClock.health();
+}
+
+void AVFrameQueue::stampCadenceLocked(
+    TimedFrame& tf, std::chrono::steady_clock::time_point now) {
+    if (!cadence) {
+        return;
+    }
+    const int64_t nowNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                              now.time_since_epoch())
+                              .count();
+    if (pendingSrcPtsUs == 0) {
+        // No host timestamp for this frame: fall back to arrival time.
+        tf.dueNs = nowNs;
+        return;
+    }
+    const int64_t intervalNs =
+        streamFps > 0 ? 1'000'000'000 / streamFps : 16'666'667;
+    tf.dueNs = cadenceClock.dueNs(pendingSrcPtsUs * 1000ull, nowNs, intervalNs);
+    pendingSrcPtsUs = 0;
+}
+
 double AVFrameQueue::getJitterMs() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return ll_jitterNs / 1.0e6;
@@ -516,6 +593,9 @@ void AVFrameQueue::cleanup() {
     frameCredit              = 0.0;
     startupBuffering         = true;
     playoutResyncNeeded      = true;
+
+    cadenceClock = artemis::streaming::CadenceClock{};
+    pendingSrcPtsUs = 0;
 
     resetLLFilterLocked();
     ll_renderP95Ms = 0.0;
@@ -562,7 +642,9 @@ bool AVFrameQueue::pushTransferredLocked(AVFrame* item) {
         recordArrivalLocked(now);
     }
 
-    queue.push_back(makeTimedFrame(item, timeEstimate, now));
+    TimedFrame timed = makeTimedFrame(item, timeEstimate, now);
+    stampCadenceLocked(timed, now);
+    queue.push_back(timed);
     pushesSincePop++;
     maxPushBurstStat = std::max(maxPushBurstStat, pushesSincePop);
 
@@ -574,6 +656,9 @@ bool AVFrameQueue::pushTransferredLocked(AVFrame* item) {
             recycleFrame(freeQueue, dropped);
             framesDroppedStat++;
             overflowDropStat++;
+        }
+        if (cadence) {
+            cadenceClock.reset();
         }
         if (lowLatency) {
             resetLLFilterLocked();

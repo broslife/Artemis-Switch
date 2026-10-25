@@ -20,6 +20,8 @@ struct SessionLogConfig {
     int fps = 60;
     int bitrateKbps = 15000;
     bool lowLatencyPacing = false;
+    // Takes priority over lowLatencyPacing, as in AVFrameQueue::configure.
+    bool cadencePacing = false;
     int queueSize = 3;
     std::string codec = "HEVC";
 };
@@ -63,6 +65,12 @@ private:
     uint64_t m_prev_oflow_drops = 0;
     uint64_t m_prev_pacing_skips = 0;
     uint64_t m_prev_holds = 0;
+    uint64_t m_prev_net_drops = 0;
+    uint64_t m_prev_late = 0;
+    uint64_t m_prev_reanchors = 0;
+    uint64_t m_total_net_drops = 0;
+    uint64_t m_total_late = 0;
+    uint64_t m_total_reanchors = 0;
     artemis::streaming::SlotIntervalCounts m_prev_slots;
     artemis::streaming::SlotIntervalCounts m_total_slots;
     uint32_t m_elapsed_sec = 0;

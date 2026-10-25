@@ -851,6 +851,8 @@ int FFmpegVideoDecoder::submit_decode_unit(PDECODE_UNIT decode_unit) {
             brls::Logger::error("FFmpeg: Big buffer to decode...");
         }
 
+        // Host timestamp for the cadence pacing mode (0 = unknown).
+        AVFrameHolder::instance().setSourcePtsUs(decode_unit->presentationTimeUs);
         const int decoded_frames = decode(m_ffmpeg_buffer, length);
         if (decoded_frames >= 0) {
             if (decoded_frames == 0) {

@@ -20,6 +20,7 @@ Reference material from the Punktfunk project (MIT / Apache-2.0) is in `referenc
 ## Learned User Preferences
 
 - Always push to the current repository of the workspace (the repo selected for this session). Never push to or open PRs against any other repository.
+- The correct repository is `broslife/Artemis-Switch` (the user's fork). `antoinebou12/Artemis-Switch` and `XITRIX/Moonlight-Switch` are upstream and must never receive pushes, workflow runs, PRs, or issues. Every `gh` command that talks to GitHub (`gh run`, `gh workflow`, `gh pr`, `gh api`) must carry `--repo broslife/Artemis-Switch`, even though `gh repo set-default` is already set locally, because the default is not stored in git and can be lost. Before the first `gh` or `git push` of a session, confirm with `git remote -v` that `origin` is `broslife/Artemis-Switch`.
 - Check what is already on this fork's `main` before re-implementing anything. Prefer simple, non-breaking changes, in small sequenced steps (one roadmap step per change), not one mega-change.
 - Every new presentation/pacing mode must be optional and keep a fallback to the current behavior (the current pacing stays the default until the new mode is proven on device).
 - Gate Switch-only or risky features so other platforms and CI keep working (see `docs/OTHER_PLATFORMS.md`). Keep pacing math (clock, slot selection, judder counting) in portable code that unit tests can cover without a Switch.
