@@ -64,6 +64,24 @@ int main() {
         assert(d.n0 == 1 && d.n1 == 15 && d.n2 == 0 && d.n3plus == 3);
     }
 
+    // A source reset (counters went backwards) must not wrap around.
+    {
+        const SlotIntervalCounts a{0, 100, 5, 2};
+        const SlotIntervalCounts b{0, 3, 1, 0};
+        const auto d = b.since(a);
+        assert(d.n1 == 3 && d.n2 == 1 && d.n3plus == 0);
+    }
+
+    // Judder against the expected bucket: a half-rate lock is not "steady".
+    {
+        const SlotIntervalCounts locked{0, 0, 30, 0};
+        assert(locked.judderPermille() == 0.0);
+        assert(locked.judderPermille(1) == 1000.0);
+        assert(locked.judderPermille(2) == 0.0);
+        const SlotIntervalCounts mixed{0, 90, 10, 0};
+        assert(std::abs(mixed.judderPermille(1) - 100.0) < 1e-9);
+    }
+
     // Same-slot frames count as n0 and reset clears everything.
     {
         SlotIntervals s;

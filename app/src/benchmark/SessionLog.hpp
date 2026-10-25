@@ -71,6 +71,7 @@ private:
     uint64_t m_total_net_drops = 0;
     uint64_t m_total_late = 0;
     uint64_t m_total_reanchors = 0;
+    int m_expected_slots = 1;
     artemis::streaming::SlotIntervalCounts m_prev_slots;
     artemis::streaming::SlotIntervalCounts m_total_slots;
     uint32_t m_elapsed_sec = 0;

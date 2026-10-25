@@ -123,7 +123,9 @@ public:
         const double queueWaitMs = msBetween(decodeDone, selectedAt);
         updateEma(m_.queueWaitMsEma, queueWaitMs);
         updateP95(m_.queueWaitMsP95, queueWaitMs);
-        if (std::isfinite(queueWaitMs) && queueWaitMs >= 0.0) {
+        // Samples above 2 s are a missing timestamp, not a real wait.
+        if (std::isfinite(queueWaitMs) && queueWaitMs >= 0.0 &&
+            queueWaitMs < kMaxPlausibleLatencyMs) {
             m_.windowQueueWaitSum += queueWaitMs;
             m_.windowQueueWaitMax = std::max(m_.windowQueueWaitMax, queueWaitMs);
             m_.windowQueueWaitN++;
@@ -153,7 +155,7 @@ public:
             // Only the first present of a new frame; repeats of the same image
             // would add its growing age to the window.
             if (m_.newFrameAwaitingPresent && std::isfinite(clientMs) &&
-                clientMs >= 0.0) {
+                clientMs >= 0.0 && clientMs < kMaxPlausibleLatencyMs) {
                 m_.windowClientPipeSum += clientMs;
                 m_.windowClientPipeMax = std::max(m_.windowClientPipeMax, clientMs);
                 m_.windowClientPipeN++;
@@ -231,6 +233,8 @@ public:
     }
 
 private:
+    static constexpr double kMaxPlausibleLatencyMs = 2000.0;
+
     struct State {
         bool streamStarted = false;
         clock::time_point streamStart{};

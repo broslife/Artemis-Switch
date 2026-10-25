@@ -48,6 +48,12 @@ static std::string isoUtcNow() {
     return buf;
 }
 
+// Per-second delta of a cumulative counter; a counter that went backwards was
+// reset, so its current value is the delta.
+static uint64_t deltaSince(uint64_t current, uint64_t previous) {
+    return current >= previous ? current - previous : current;
+}
+
 // Replaces characters that are unsafe in filenames with '_'.
 static std::string safeFilePart(const std::string& s) {
     std::string r;
@@ -131,11 +137,12 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << "  uflows/s  skips/s  oflows/s  pskips/s  holds/s"
       << "  qdepth  rcv_ms  dec_ms"
       << "  pts_mean_ms  pts_max_ms  pts_std_ms"
-      << "  judder_permille  n0  n1  n2  n3plus"
+      << "  judder_permille  n0  n1  n2  n3plus  shown"
       << "  netdrops/s  late/s  reanchors/s  cushion_ms"
       << "  qwait_ms  qwait_max  cpipe_ms  cpipe_max\n"
       << "# n0..n3plus = display slots between two new frames (0, 1, 2, 3+);"
-      << " judder_permille = share outside the most common bucket.\n"
+      << " judder_permille = share outside the bucket expected for the stream"
+      << " fps (n1 at 60 fps); shown = new frames put on screen that second.\n"
       << "# netdrops = frames lost on the network; late, reanchors, cushion_ms"
       << " are only filled in cadence mode.\n"
       << "# Client latency per new frame (ms, mean and max over the second):"
@@ -146,7 +153,7 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << "\tuflows\tskips\toflows\tpskips\tholds"
       << "\tqdepth\trcv_ms\tdec_ms"
       << "\tpts_mean\tpts_max\tpts_std"
-      << "\tjudder\tn0\tn1\tn2\tn3plus"
+      << "\tjudder\tn0\tn1\tn2\tn3plus\tshown"
       << "\tnetdrops\tlate\treanchors\tcushion"
       << "\tqwait\tqwait_max\tcpipe\tcpipe_max\n";
     return h.str();
@@ -182,6 +189,10 @@ void SessionLog::start(const SessionLogConfig& config) {
     m_total_reanchors = 0;
     m_prev_slots = {};
     m_total_slots = {};
+    // Display slots between new frames if the stream is perfectly paced.
+    m_expected_slots = std::clamp(
+        config.fps > 0 ? static_cast<int>(std::lround(60.0 / config.fps)) : 1,
+        1, 3);
     m_judder_series.clear();
     m_qwait_series.clear();
     m_cpipe_series.clear();
@@ -244,7 +255,7 @@ void SessionLog::stop() {
                    << "  n2=" << m_total_slots.n2
                    << "  n3plus=" << m_total_slots.n3plus
                    << "  judder_permille="
-                   << m_total_slots.judderPermille() << "\n"
+                   << m_total_slots.judderPermille(m_expected_slots) << "\n"
                    << "# Network  netdrops=" << m_total_net_drops
                    << "  cadence_late=" << m_total_late
                    << "  cadence_reanchors=" << m_total_reanchors << "\n";
@@ -298,12 +309,12 @@ void SessionLog::captureLine() {
     const uint64_t oflows = holder.getFrameQueueOverflowDropStat();
     const uint64_t pskips = holder.getFrameQueuePacingSkipStat();
 
-    const uint64_t d_uflows = uflows - m_prev_uflows;
-    const uint64_t d_skips = skips - m_prev_skips;
-    const uint64_t d_oflows = oflows - m_prev_oflow_drops;
-    const uint64_t d_pskips = pskips - m_prev_pacing_skips;
+    const uint64_t d_uflows = deltaSince(uflows, m_prev_uflows);
+    const uint64_t d_skips = deltaSince(skips, m_prev_skips);
+    const uint64_t d_oflows = deltaSince(oflows, m_prev_oflow_drops);
+    const uint64_t d_pskips = deltaSince(pskips, m_prev_pacing_skips);
     const uint64_t holds = holder.getFrameQueueScheduledHoldStat();
-    const uint64_t d_holds = holds - m_prev_holds;
+    const uint64_t d_holds = deltaSince(holds, m_prev_holds);
 
     m_prev_uflows = uflows;
     m_prev_skips = skips;
@@ -351,7 +362,7 @@ void SessionLog::captureLine() {
             m_cpipe_max_series.push_back(lat.clientPipelineMaxMs);
         }
         m_judder_series.push_back(
-            static_cast<float>(d_slots.judderPermille()));
+            static_cast<float>(d_slots.judderPermille(m_expected_slots)));
         m_rfps_series.push_back(rfps);
         m_rcv_fps_series.push_back(dec.current_received_fps);
         m_dec_fps_series.push_back(dec.current_decoded_fps);
@@ -381,11 +392,12 @@ void SessionLog::captureLine() {
          << '\t' << dec.current_pts_delta_max_ms
          << '\t' << dec.current_pts_delta_stddev_ms
          << std::setprecision(0)
-         << '\t' << d_slots.judderPermille()
+         << '\t' << d_slots.judderPermille(m_expected_slots)
          << '\t' << d_slots.n0
          << '\t' << d_slots.n1
          << '\t' << d_slots.n2
          << '\t' << d_slots.n3plus
+         << '\t' << d_slots.total()
          << '\t' << d_netDrops
          << '\t' << d_late
          << '\t' << d_reanchors

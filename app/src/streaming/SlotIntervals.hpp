@@ -29,8 +29,25 @@ struct SlotIntervalCounts {
                static_cast<double>(all);
     }
 
-    // Counts accumulated since an earlier snapshot (per-second deltas).
+    // Share of intervals that are NOT the expected bucket, in per-mille.
+    // expectedSlots is 60 Hz / stream fps (1 for a 60 fps stream). Unlike the
+    // mode-based value, a stream locked at half rate reads as full judder.
+    [[nodiscard]] double judderPermille(int expectedSlots) const {
+        const uint64_t all = total();
+        if (all == 0)
+            return 0.0;
+        const uint64_t expected =
+            expectedSlots <= 0 ? n0 : (expectedSlots == 1 ? n1 : (expectedSlots == 2 ? n2 : n3plus));
+        return 1000.0 * static_cast<double>(all - expected) /
+               static_cast<double>(all);
+    }
+
+    // Counts accumulated since an earlier snapshot (per-second deltas). If a
+    // counter went backwards the source was reset, so the current value is the
+    // delta.
     [[nodiscard]] SlotIntervalCounts since(const SlotIntervalCounts& prev) const {
+        if (n0 < prev.n0 || n1 < prev.n1 || n2 < prev.n2 || n3plus < prev.n3plus)
+            return *this;
         return {n0 - prev.n0, n1 - prev.n1, n2 - prev.n2, n3plus - prev.n3plus};
     }
 };
