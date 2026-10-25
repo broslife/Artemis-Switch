@@ -8,6 +8,14 @@ option(ARTEMIS_STRICT_WARNINGS
 option(ARTEMIS_ENABLE_CLANG_TIDY
     "Run clang-tidy while compiling the portable Artemis test surface" OFF)
 
+# The tests rely on assert() and several call functions inside it; NDEBUG
+# (Release builds) would remove those calls and the checks themselves.
+if(MSVC)
+    add_compile_options(/UNDEBUG)
+else()
+    add_compile_options(-UNDEBUG)
+endif()
+
 if(ARTEMIS_STRICT_WARNINGS)
     if(MSVC)
         add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/W4>
