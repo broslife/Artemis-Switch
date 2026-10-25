@@ -272,6 +272,12 @@ if(GIT_FOUND)
 else()
     set(ARTEMIS_BUILD_HASH "unknown")
 endif()
+# Inside the CI container git can fail (e.g. "dubious ownership"); fall back
+# to the commit SHA that GitHub Actions exports.
+if((ARTEMIS_BUILD_HASH STREQUAL "unknown" OR ARTEMIS_BUILD_HASH STREQUAL "")
+        AND DEFINED ENV{GITHUB_SHA} AND NOT "$ENV{GITHUB_SHA}" STREQUAL "")
+    string(SUBSTRING "$ENV{GITHUB_SHA}" 0 7 ARTEMIS_BUILD_HASH)
+endif()
 
 add_definitions(
         -DAPP_VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}"
