@@ -738,9 +738,12 @@ int FFmpegVideoDecoder::submit_decode_unit(PDECODE_UNIT decode_unit) {
         const auto packetArrival = clock::now();
 
         // Track inter-frame delta of host presentation timestamps.
-        // presentationTimeMs is host-wall-clock milliseconds; deltas near
-        // 1000/fps (e.g. ~16.7 ms at 60 fps) confirm the host metronomic tick.
-        const uint32_t currentPtsMs = decode_unit->presentationTimeMs;
+        // presentationTimeUs is in microseconds; convert to ms for the log.
+        // Deltas near 1000/fps ms (e.g. ~16.7 ms at 60 fps) confirm the
+        // host metronomic tick (roadmap §4).
+        const uint64_t currentPtsUs = decode_unit->presentationTimeUs;
+        const uint32_t currentPtsMs =
+            static_cast<uint32_t>(currentPtsUs / 1000u);
         if (currentPtsMs != 0) {
             if (m_last_pts_valid && m_last_pts_ms != 0 &&
                 currentPtsMs >= m_last_pts_ms) {
