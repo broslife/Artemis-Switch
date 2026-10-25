@@ -44,10 +44,22 @@ Cada etapa gera um build no GitHub Actions (.nro), o Bruno testa no Switch e env
 1. Corrigir `rendered_fps`. Registrar `presentationTimeMs` (passo 0). Criar o **log de sessão** (seção 8) e identificar o build (hash do commit) no log e no About/overlay. O log vem primeiro porque é o que permite avaliar todas as etapas seguintes.
 2. (feito, testado: legado 35‰ vs low-latency 103‰) Régua de juder + contadores por segundo no overlay e no log (item 1 da seção 3). Também: trocar o autor do .nro (metadados NACP) de `antoinebou12` para `broslife` (`PROJECT_AUTHOR` em `CMakeLists.txt`, ~linha 183). Só o autor do .nro; manter nome/branding Artemis e os créditos. Os textos "by antoinebou12" do About (`resources/i18n/*/main.json`) ficam como estão, salvo pedido. O AGENTS.md já foi atualizado: todo .nro deve ter `broslife` como autor.
 3. Portar `CadenceClock` + `pace_slot` como modo novo e opcional (itens 2 e 3).
-   - Feito (aguarda teste no aparelho): `CadenceClock.hpp`, `CadenceFrameSelection.hpp`, opção **Cadence pacing (experimental)** (Settings e overlay Options), colunas `netdrops/late/reanchors/cushion` no log. Sem vsync do Borealis, o tick de draw faz o papel do slot; simulação mostrou que a folga de meio período não ajuda, então a regra é: mostra o frame mais novo com `due <= agora`.
-4. `FrameStore` com as duas intenções Latência / Suave (itens 4 e 5).
-5. Watchdog de fallback (item 6).
-6. A/B no mesmo jogo e mesma cena, comparando os logs: juder‰, skips e holds por segundo, receive→present.
+   - Feito e testado no aparelho (branch `step3-cadence`, ainda sem merge na `main`): `CadenceClock.hpp`, `CadenceFrameSelection.hpp`, opção **Cadence pacing (experimental)** (Settings e overlay Options), colunas `netdrops/late/reanchors/cushion` no log. Sem vsync do Borealis, o tick de draw faz o papel do slot; simulação mostrou que a folga de meio período não ajuda, então a regra é: mostra o frame mais novo com `due <= agora`.
+4. **Reduzir a espera da Cadence (intenção Latência).** Dados atuais (build 814c633, handheld, 720p60): `cpipe` 17,5 ms (legado 49,3 ms), `qwait` 13,7 ms. O low latency chega a 5-9 ms só porque descarta metade dos frames (30 fps efetivos), então não é meta. Sub-passos:
+   - 4a. Medir: sessão longa (3-4 min) com Cadence para ver se o `qwait` oscila em dente de serra (fase entre o relógio do host e o tick de 60 Hz) e qual é a média de longo prazo. Aceite: gráfico/tabela do `qwait` por segundo.
+   - 4b. Folga (cushion): hoje 2x MAD, piso 0,5 ms. Testar 1x MAD (preset `vrr_latency` do Punktfunk) e piso menor, A/B por log. Custo esperado da folga = a própria folga em média (1-4 ms nos logs). Ganho esperado pequeno (1-2 ms); só vale se o juder e o `late/s` não piorarem.
+   - 4c. Investigar a fila depois do envio ao display: quantas imagens tem a swapchain do deko3d dentro do Borealis (não medido pelo `cpipe`). Pode valer 1-2 vsyncs (17-33 ms), a maior alavanca possível, mas mexe em biblioteca fora do repo. Só ler e medir; decidir antes de alterar.
+   - Aceite do passo: `cpipe` menor que 17,5 ms com juder (vs esperado) não pior que ~30‰ e `shown` >= 57 fps, no mesmo jogo/cena.
+   - Expectativa honesta: o piso sem descartar frames é cerca de meio tick (8 ms) de espera, mais o decode (3,5 ms). O ganho de 4a-4b é de poucos ms; o potencial maior está em 4c.
+5. **Intenção Suave (sub-opção dentro da Cadence), depois.** `FrameStore` com buffer de 1 a 3 frames de reserva (itens 4 e 5 da seção 3). Mais suave em rede instável, com 1 a 3 frames (17-50 ms) a mais de latência. A Latência é o comportamento que a Cadence já tem; esta etapa só acrescenta a escolha Prioridade: Latência / Suave. Menor prioridade: nos logs do Bruno os segundos calmos já têm 0‰ de juder e o resíduo vem de buracos do host.
+6. Watchdog de fallback (item 6 da seção 3).
+7. A/B final no mesmo jogo e cena, comparando os logs: juder (vs esperado), `shown`, skips e holds por segundo, `qwait` e `cpipe`.
+
+Resultados já medidos (host Punktfunk, 192.168.0.133, 720p60 HEVC 10 Mbps, handheld; uma a duas sessões por modo, sem a rede controlada):
+- Legado: juder 35-86‰, `cpipe` 49 ms.
+- Low latency: instável nos primeiros 20 s e depois trava em 30 fps efetivos (`n2` ~30/s, `shown` ~30), `cpipe` 5-9 ms.
+- Cadence: juder 14-28‰, `shown` ~57, `cpipe` 17,5 ms.
+- Buracos de ~60 ms (`rcv_fps` 48-52, `netdrops` 0) aparecem em todos os modos; a pista aponta para o host (frames repetidos pela captura, `repeat_fps` no JSON do host). Investigação separada, fora deste roadmap.
 
 ## 7. Pendências
 - Fazer o fork na conta do Bruno e adicionar o repo à sessão.
