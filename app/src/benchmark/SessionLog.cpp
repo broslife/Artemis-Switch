@@ -1,6 +1,7 @@
 #include "SessionLog.hpp"
 
 #include "AVFrameHolder.hpp"
+#include "FramePipelineTelemetry.hpp"
 #include "MoonlightSession.hpp"
 #include "SwitchRuntimeMetadata.hpp"
 
@@ -131,17 +132,23 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << "  qdepth  rcv_ms  dec_ms"
       << "  pts_mean_ms  pts_max_ms  pts_std_ms"
       << "  judder_permille  n0  n1  n2  n3plus"
-      << "  netdrops/s  late/s  reanchors/s  cushion_ms\n"
+      << "  netdrops/s  late/s  reanchors/s  cushion_ms"
+      << "  qwait_ms  qwait_max  cpipe_ms  cpipe_max\n"
       << "# n0..n3plus = display slots between two new frames (0, 1, 2, 3+);"
       << " judder_permille = share outside the most common bucket.\n"
       << "# netdrops = frames lost on the network; late, reanchors, cushion_ms"
       << " are only filled in cadence mode.\n"
+      << "# Client latency per new frame (ms, mean and max over the second):"
+      << " qwait = decode done to chosen for display; cpipe = packet fully"
+      << " received to submitted for display. Host and network transit are"
+      << " not included.\n"
       << "sec\trfps\trcv_fps\tdec_fps"
       << "\tuflows\tskips\toflows\tpskips\tholds"
       << "\tqdepth\trcv_ms\tdec_ms"
       << "\tpts_mean\tpts_max\tpts_std"
       << "\tjudder\tn0\tn1\tn2\tn3plus"
-      << "\tnetdrops\tlate\treanchors\tcushion\n";
+      << "\tnetdrops\tlate\treanchors\tcushion"
+      << "\tqwait\tqwait_max\tcpipe\tcpipe_max\n";
     return h.str();
 }
 
@@ -176,6 +183,12 @@ void SessionLog::start(const SessionLogConfig& config) {
     m_prev_slots = {};
     m_total_slots = {};
     m_judder_series.clear();
+    m_qwait_series.clear();
+    m_cpipe_series.clear();
+    m_cpipe_max_series.clear();
+    // Drop anything accumulated before this session started.
+    (void)artemis::streaming::FramePipelineTelemetry::instance()
+        .takeLatencyWindow();
     m_elapsed_sec = 0;
     m_total_uflows = 0;
     m_total_skips = 0;
@@ -236,6 +249,9 @@ void SessionLog::stop() {
                    << "  cadence_late=" << m_total_late
                    << "  cadence_reanchors=" << m_total_reanchors << "\n";
             appendSeriesSummary(m_file, "judder_permille", m_judder_series);
+            appendSeriesSummary(m_file, "qwait_ms", m_qwait_series);
+            appendSeriesSummary(m_file, "cpipe_ms", m_cpipe_series);
+            appendSeriesSummary(m_file, "cpipe_max_ms", m_cpipe_max_series);
             appendSeriesSummary(m_file, "rendered_fps", m_rfps_series);
             appendSeriesSummary(m_file, "rcv_fps", m_rcv_fps_series);
             appendSeriesSummary(m_file, "dec_fps", m_dec_fps_series);
@@ -324,8 +340,16 @@ void SessionLog::captureLine() {
     m_total_late += d_late;
     m_total_reanchors += d_reanchors;
 
+    const auto lat = artemis::streaming::FramePipelineTelemetry::instance()
+                         .takeLatencyWindow();
+
     const float rfps = ren.rendered_fps;
     if (rfps > 0.0f) {
+        if (lat.frames > 0) {
+            m_qwait_series.push_back(lat.queueWaitMeanMs);
+            m_cpipe_series.push_back(lat.clientPipelineMeanMs);
+            m_cpipe_max_series.push_back(lat.clientPipelineMaxMs);
+        }
         m_judder_series.push_back(
             static_cast<float>(d_slots.judderPermille()));
         m_rfps_series.push_back(rfps);
@@ -367,6 +391,10 @@ void SessionLog::captureLine() {
          << '\t' << d_reanchors
          << std::setprecision(2)
          << '\t' << static_cast<double>(cadence.cushionNs) / 1.0e6
+         << '\t' << lat.queueWaitMeanMs
+         << '\t' << lat.queueWaitMaxMs
+         << '\t' << lat.clientPipelineMeanMs
+         << '\t' << lat.clientPipelineMaxMs
          << '\n';
 
     m_elapsed_sec++;

@@ -72,16 +72,16 @@ TimedFrame makeTimedFrame(AVFrame* frame,
     tf.timeEstimate = timeEstimate;
     tf.queued = now;
     tf.frame = frame;
+    // The frame is pushed from inside decode(), so the matching decode unit's
+    // arrival is the one set just before decode() and the decode is done now.
     std::chrono::steady_clock::time_point networkComplete{};
-    std::chrono::steady_clock::time_point decodeDone{};
     if (artemis::streaming::FramePipelineTelemetry::instance()
-            .consumePendingDecodeTiming(networkComplete, decodeDone)) {
+            .currentPacketArrival(networkComplete)) {
         tf.networkComplete = networkComplete;
-        tf.decodeDone = decodeDone;
     } else {
         tf.networkComplete = now;
-        tf.decodeDone = now;
     }
+    tf.decodeDone = now;
     artemis::streaming::FramePipelineTelemetry::instance().noteFrameQueued(now);
     return tf;
 }
@@ -411,8 +411,10 @@ AVFrame* AVFrameQueue::pop(bool* consumed) {
     const size_t consumeCount = std::min(queue.size(), dueFrames);
 
     recycleFrame(freeQueue, bufferFrame);
+    TimedFrame shownTiming;
     for (size_t i = 0; i < consumeCount; i++) {
         AVFrame* item = queue.front().frame;
+        shownTiming = queue.front();
         queue.pop_front();
 
         if (i + 1 < consumeCount) {
@@ -424,6 +426,9 @@ AVFrame* AVFrameQueue::pop(bool* consumed) {
         }
     }
 
+    // Telemetry only: lets the session log compare latency across pacing modes.
+    artemis::streaming::FramePipelineTelemetry::instance().noteFrameSelected(
+        shownTiming.networkComplete, shownTiming.decodeDone, now);
     if (consumed) {
         *consumed = true;
     }

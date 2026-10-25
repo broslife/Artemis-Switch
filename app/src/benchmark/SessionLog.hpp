@@ -92,6 +92,9 @@ private:
     std::vector<float> m_dec_ms_series;
     std::vector<float> m_pts_max_series;
     std::vector<float> m_judder_series;
+    std::vector<float> m_qwait_series;
+    std::vector<float> m_cpipe_series;
+    std::vector<float> m_cpipe_max_series;
 };
 
 } // namespace artemis::benchmark

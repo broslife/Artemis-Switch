@@ -2,6 +2,7 @@
 
 #include "Singleton.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -64,6 +65,52 @@ public:
         return true;
     }
 
+    // Instant the decode unit being decoded was fully received. Set before
+    // decode() because the frame is pushed to the queue from inside decode().
+    void notePacketArrival(clock::time_point arrival) {
+        std::lock_guard lock(m_mutex);
+        m_.currentPacketArrival = arrival;
+        m_.hasCurrentPacketArrival = true;
+    }
+
+    bool currentPacketArrival(clock::time_point& arrival) const {
+        std::lock_guard lock(m_mutex);
+        if (!m_.hasCurrentPacketArrival)
+            return false;
+        arrival = m_.currentPacketArrival;
+        return true;
+    }
+
+    // Per-frame client latency accumulated since the previous call, for the
+    // session log. Network transit and the host are not included.
+    struct LatencyWindow {
+        float queueWaitMeanMs = 0.0f;
+        float queueWaitMaxMs = 0.0f;
+        float clientPipelineMeanMs = 0.0f;
+        float clientPipelineMaxMs = 0.0f;
+        uint32_t frames = 0;
+    };
+
+    LatencyWindow takeLatencyWindow() {
+        std::lock_guard lock(m_mutex);
+        LatencyWindow w;
+        if (m_.windowQueueWaitN > 0) {
+            w.queueWaitMeanMs = static_cast<float>(
+                m_.windowQueueWaitSum / m_.windowQueueWaitN);
+            w.queueWaitMaxMs = static_cast<float>(m_.windowQueueWaitMax);
+        }
+        if (m_.windowClientPipeN > 0) {
+            w.clientPipelineMeanMs = static_cast<float>(
+                m_.windowClientPipeSum / m_.windowClientPipeN);
+            w.clientPipelineMaxMs = static_cast<float>(m_.windowClientPipeMax);
+        }
+        w.frames = m_.windowClientPipeN;
+        m_.windowQueueWaitSum = m_.windowQueueWaitMax = 0.0;
+        m_.windowClientPipeSum = m_.windowClientPipeMax = 0.0;
+        m_.windowQueueWaitN = m_.windowClientPipeN = 0;
+        return w;
+    }
+
     void noteFrameQueued(clock::time_point queuedAt) {
         std::lock_guard lock(m_mutex);
         (void)queuedAt;
@@ -76,6 +123,12 @@ public:
         const double queueWaitMs = msBetween(decodeDone, selectedAt);
         updateEma(m_.queueWaitMsEma, queueWaitMs);
         updateP95(m_.queueWaitMsP95, queueWaitMs);
+        if (std::isfinite(queueWaitMs) && queueWaitMs >= 0.0) {
+            m_.windowQueueWaitSum += queueWaitMs;
+            m_.windowQueueWaitMax = std::max(m_.windowQueueWaitMax, queueWaitMs);
+            m_.windowQueueWaitN++;
+        }
+        m_.newFrameAwaitingPresent = true;
         m_.lastSelectedAt = selectedAt;
         m_.hasLastSelected = true;
         m_.lastDecodeDoneForSelected = decodeDone;
@@ -97,7 +150,16 @@ public:
                 msBetween(m_.lastNetworkCompleteForSelected, presentedAt);
             updateEma(m_.clientPipelineMsEma, clientMs);
             updateP95(m_.clientPipelineMsP95, clientMs);
+            // Only the first present of a new frame; repeats of the same image
+            // would add its growing age to the window.
+            if (m_.newFrameAwaitingPresent && std::isfinite(clientMs) &&
+                clientMs >= 0.0) {
+                m_.windowClientPipeSum += clientMs;
+                m_.windowClientPipeMax = std::max(m_.windowClientPipeMax, clientMs);
+                m_.windowClientPipeN++;
+            }
         }
+        m_.newFrameAwaitingPresent = false;
 
         if (std::isfinite(renderMs) && renderMs >= 0.0) {
             updateEma(m_.renderMsEma, renderMs);
@@ -178,6 +240,17 @@ private:
         clock::time_point firstDecode{};
         bool hasFirstPresent = false;
         clock::time_point firstPresent{};
+
+        bool hasCurrentPacketArrival = false;
+        clock::time_point currentPacketArrival{};
+
+        bool newFrameAwaitingPresent = false;
+        double windowQueueWaitSum = 0.0;
+        double windowQueueWaitMax = 0.0;
+        uint32_t windowQueueWaitN = 0;
+        double windowClientPipeSum = 0.0;
+        double windowClientPipeMax = 0.0;
+        uint32_t windowClientPipeN = 0;
 
         bool hasPendingTiming = false;
         clock::time_point pendingNetworkComplete{};

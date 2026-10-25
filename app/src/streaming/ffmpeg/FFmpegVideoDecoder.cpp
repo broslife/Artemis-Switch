@@ -853,6 +853,8 @@ int FFmpegVideoDecoder::submit_decode_unit(PDECODE_UNIT decode_unit) {
 
         // Host timestamp for the cadence pacing mode (0 = unknown).
         AVFrameHolder::instance().setSourcePtsUs(decode_unit->presentationTimeUs);
+        artemis::streaming::FramePipelineTelemetry::instance().notePacketArrival(
+            packetArrival);
         const int decoded_frames = decode(m_ffmpeg_buffer, length);
         if (decoded_frames >= 0) {
             if (decoded_frames == 0) {

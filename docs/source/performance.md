@@ -86,6 +86,10 @@ The same values go into the always-on session log (`sdmc:/switch/Artemis-Switch/
 
 Idea adapted from the [Punktfunk](https://github.com/punktfunk/punktfunk) project.
 
+## Client latency in the session log
+
+Every frame shown for the first time is timed twice, and the log keeps the mean and max per second: `qwait` (decode finished until the pacer chose the frame) and `cpipe` (decode unit fully received until the frame was submitted for display). This is the client share only: network transit, the host and the display panel are not included. Use it to compare pacing modes under the same conditions.
+
 ## Startup timing
 
 Once per stream, telemetry records:
