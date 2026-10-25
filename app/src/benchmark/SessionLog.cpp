@@ -4,7 +4,9 @@
 #include "MoonlightSession.hpp"
 #include "SwitchRuntimeMetadata.hpp"
 
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <ctime>
 #include <filesystem>
 #include <iomanip>
@@ -83,6 +85,24 @@ static std::string makeLogPath(const SessionLogConfig& cfg) {
     return std::string(kLogDirectory) + '/' + name.str();
 }
 
+// Appends "# name  min=.. mean=.. p95=.. max=.." for a per-second series.
+static void appendSeriesSummary(std::ostream& out, const char* name,
+                                const std::vector<float>& series) {
+    if (series.empty())
+        return;
+    std::vector<float> sorted(series);
+    std::sort(sorted.begin(), sorted.end());
+    double sum = 0.0;
+    for (float v : sorted)
+        sum += v;
+    const size_t p95Index = static_cast<size_t>(
+        std::ceil(0.95 * static_cast<double>(sorted.size()))) - 1;
+    out << "# " << name << "  min=" << sorted.front()
+        << "  mean=" << sum / static_cast<double>(sorted.size())
+        << "  p95=" << sorted[std::min(p95Index, sorted.size() - 1)]
+        << "  max=" << sorted.back() << "\n";
+}
+
 static std::string buildHeader(const SessionLogConfig& cfg,
                                const std::string& logPath) {
     const auto meta = collectSwitchRuntimeMetadata();
@@ -94,6 +114,7 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << "# Host: " << cfg.host << "\n"
       << "# Stream: " << cfg.width << 'x' << cfg.height
       << " @ " << cfg.fps << " fps"
+      << "  Codec: " << cfg.codec
       << "  Bitrate: " << cfg.bitrateKbps << " kbps\n"
       << "# Pacing: " << (cfg.lowLatencyPacing ? "low-latency" : "legacy")
       << "  QueueSize: " << cfg.queueSize << "\n"
@@ -102,11 +123,11 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << "#\n"
       << "# Columns:\n"
       << "#   sec  rfps  rcv_fps  dec_fps"
-      << "  uflows/s  skips/s  oflows/s  pskips/s"
+      << "  uflows/s  skips/s  oflows/s  pskips/s  holds/s"
       << "  qdepth  rcv_ms  dec_ms"
       << "  pts_mean_ms  pts_max_ms  pts_std_ms\n"
       << "sec\trfps\trcv_fps\tdec_fps"
-      << "\tuflows\tskips\toflows\tpskips"
+      << "\tuflows\tskips\toflows\tpskips\tholds"
       << "\tqdepth\trcv_ms\tdec_ms"
       << "\tpts_mean\tpts_max\tpts_std\n";
     return h.str();
@@ -133,11 +154,20 @@ void SessionLog::start(const SessionLogConfig& config) {
     m_prev_skips = 0;
     m_prev_oflow_drops = 0;
     m_prev_pacing_skips = 0;
+    m_prev_holds = 0;
     m_elapsed_sec = 0;
-    m_rfps_sum = 0.0;
-    m_rfps_min = 999.0f;
-    m_rfps_max = 0.0f;
-    m_rfps_count = 0;
+    m_total_uflows = 0;
+    m_total_skips = 0;
+    m_total_oflows = 0;
+    m_total_pskips = 0;
+    m_total_holds = 0;
+    m_rfps_series.clear();
+    m_rcv_fps_series.clear();
+    m_dec_fps_series.clear();
+    m_qdepth_series.clear();
+    m_rcv_ms_series.clear();
+    m_dec_ms_series.clear();
+    m_pts_max_series.clear();
     m_pending.clear();
 
     const std::string logPath = makeLogPath(config);
@@ -165,15 +195,23 @@ void SessionLog::stop() {
     if (m_file.is_open()) {
         flushPending();
 
-        if (m_rfps_count > 0) {
-            const double mean = m_rfps_sum / m_rfps_count;
-            m_file << "# SESSION SUMMARY\n"
+        if (!m_rfps_series.empty()) {
+            m_file << std::fixed << std::setprecision(2)
+                   << "# SESSION SUMMARY\n"
                    << "# Duration: " << m_elapsed_sec << " s"
-                   << "  Samples: " << m_rfps_count << "\n"
-                   << "# rendered_fps  mean=" << std::fixed
-                   << std::setprecision(2) << mean
-                   << "  min=" << m_rfps_min
-                   << "  max=" << m_rfps_max << "\n";
+                   << "  Samples: " << m_rfps_series.size() << "\n"
+                   << "# Totals  uflows=" << m_total_uflows
+                   << "  skips=" << m_total_skips
+                   << "  oflows=" << m_total_oflows
+                   << "  pskips=" << m_total_pskips
+                   << "  holds=" << m_total_holds << "\n";
+            appendSeriesSummary(m_file, "rendered_fps", m_rfps_series);
+            appendSeriesSummary(m_file, "rcv_fps", m_rcv_fps_series);
+            appendSeriesSummary(m_file, "dec_fps", m_dec_fps_series);
+            appendSeriesSummary(m_file, "qdepth", m_qdepth_series);
+            appendSeriesSummary(m_file, "rcv_ms", m_rcv_ms_series);
+            appendSeriesSummary(m_file, "dec_ms", m_dec_ms_series);
+            appendSeriesSummary(m_file, "pts_max_ms", m_pts_max_series);
         }
         m_file.flush();
         m_file.close();
@@ -217,18 +255,31 @@ void SessionLog::captureLine() {
     const uint64_t d_skips = skips - m_prev_skips;
     const uint64_t d_oflows = oflows - m_prev_oflow_drops;
     const uint64_t d_pskips = pskips - m_prev_pacing_skips;
+    const uint64_t holds = holder.getFrameQueueScheduledHoldStat();
+    const uint64_t d_holds = holds - m_prev_holds;
 
     m_prev_uflows = uflows;
     m_prev_skips = skips;
     m_prev_oflow_drops = oflows;
     m_prev_pacing_skips = pskips;
+    m_prev_holds = holds;
+
+    m_total_uflows += d_uflows;
+    m_total_skips += d_skips;
+    m_total_oflows += d_oflows;
+    m_total_pskips += d_pskips;
+    m_total_holds += d_holds;
 
     const float rfps = ren.rendered_fps;
     if (rfps > 0.0f) {
-        m_rfps_sum += rfps;
-        if (rfps < m_rfps_min) m_rfps_min = rfps;
-        if (rfps > m_rfps_max) m_rfps_max = rfps;
-        m_rfps_count++;
+        m_rfps_series.push_back(rfps);
+        m_rcv_fps_series.push_back(dec.current_received_fps);
+        m_dec_fps_series.push_back(dec.current_decoded_fps);
+        m_qdepth_series.push_back(
+            static_cast<float>(holder.getFrameQueueSize()));
+        m_rcv_ms_series.push_back(dec.current_receive_time);
+        m_dec_ms_series.push_back(dec.current_decoding_time);
+        m_pts_max_series.push_back(dec.current_pts_delta_max_ms);
     }
 
     std::ostringstream line;
@@ -241,6 +292,7 @@ void SessionLog::captureLine() {
          << '\t' << d_skips
          << '\t' << d_oflows
          << '\t' << d_pskips
+         << '\t' << d_holds
          << '\t' << holder.getFrameQueueSize()
          << '\t' << dec.current_receive_time
          << '\t' << dec.current_decoding_time

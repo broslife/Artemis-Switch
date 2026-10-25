@@ -19,6 +19,7 @@ struct SessionLogConfig {
     int bitrateKbps = 15000;
     bool lowLatencyPacing = false;
     int queueSize = 3;
+    std::string codec = "HEVC";
 };
 
 // Always-on session log: one text file per streaming session on the SD card
@@ -59,13 +60,25 @@ private:
     uint64_t m_prev_skips = 0;
     uint64_t m_prev_oflow_drops = 0;
     uint64_t m_prev_pacing_skips = 0;
+    uint64_t m_prev_holds = 0;
     uint32_t m_elapsed_sec = 0;
 
-    // Session-level accumulators for summary.
-    double m_rfps_sum = 0.0;
-    float m_rfps_min = 999.0f;
-    float m_rfps_max = 0.0f;
-    uint32_t m_rfps_count = 0;
+    // Session totals of the per-second counter deltas.
+    uint64_t m_total_uflows = 0;
+    uint64_t m_total_skips = 0;
+    uint64_t m_total_oflows = 0;
+    uint64_t m_total_pskips = 0;
+    uint64_t m_total_holds = 0;
+
+    // One value per logged second (only while frames are being rendered),
+    // used for the min/mean/p95/max summary.
+    std::vector<float> m_rfps_series;
+    std::vector<float> m_rcv_fps_series;
+    std::vector<float> m_dec_fps_series;
+    std::vector<float> m_qdepth_series;
+    std::vector<float> m_rcv_ms_series;
+    std::vector<float> m_dec_ms_series;
+    std::vector<float> m_pts_max_series;
 };
 
 } // namespace artemis::benchmark
