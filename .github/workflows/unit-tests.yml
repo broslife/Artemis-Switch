@@ -21,6 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Only the two submodules the portable tests read; vcpkg and the rest are not needed.
+      - name: Fetch test submodules
+        run: git submodule update --init --depth 1 extern/wg-nx extern/borealis
+
       - name: Validate Artemis English/French translations
         run: python tests/i18n_consistency_test.py
 
@@ -46,6 +50,10 @@ jobs:
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
     steps:
       - uses: actions/checkout@v4
+
+      # Only the two submodules the portable tests read; vcpkg and the rest are not needed.
+      - name: Fetch test submodules
+        run: git submodule update --init --depth 1 extern/wg-nx extern/borealis
 
       - name: Configure sanitizer build
         run: cmake -S tests -B build/tests-sanitized -DCMAKE_BUILD_TYPE=Debug
