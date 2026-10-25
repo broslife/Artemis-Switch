@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "remote_access_provider_id.hpp"
 
 #include "HostDeviceOs.hpp"
@@ -327,6 +329,9 @@ class Settings : public Singleton<Settings> {
     [[nodiscard]] bool low_latency_pacing() const { return m_low_latency_pacing; }
     void set_cadence_pacing(bool value) { m_cadence_pacing = value; }
     [[nodiscard]] bool cadence_pacing() const { return m_cadence_pacing; }
+    // 0 = standard, 1 = tight, 2 = minimal (see cadenceTuningForCushion).
+    void set_cadence_cushion(int value) { m_cadence_cushion = std::clamp(value, 0, 2); }
+    [[nodiscard]] int cadence_cushion() const { return m_cadence_cushion; }
 
     void set_sops(bool sops) { m_sops = sops; }
     [[nodiscard]] bool sops() const { return m_sops; }
@@ -619,6 +624,7 @@ class Settings : public Singleton<Settings> {
     int m_frames_queue_size = 3;
     bool m_low_latency_pacing = false;
     bool m_cadence_pacing = false;
+    int m_cadence_cushion = 0;
     bool m_sops = false;
     bool m_play_audio = false;
     bool m_wireguard_enabled = false;

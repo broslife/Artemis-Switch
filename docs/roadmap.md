@@ -47,6 +47,8 @@ Cada etapa gera um build no GitHub Actions (.nro), o Bruno testa no Switch e env
    - Feito e testado no aparelho (branch `step3-cadence`, ainda sem merge na `main`): `CadenceClock.hpp`, `CadenceFrameSelection.hpp`, opção **Cadence pacing (experimental)** (Settings e overlay Options), colunas `netdrops/late/reanchors/cushion` no log. Sem vsync do Borealis, o tick de draw faz o papel do slot; simulação mostrou que a folga de meio período não ajuda, então a regra é: mostra o frame mais novo com `due <= agora`.
 4. **Reduzir a espera da Cadence (intenção Latência).** Dados atuais (build 814c633, handheld, 720p60): `cpipe` 17,5 ms (legado 49,3 ms), `qwait` 13,7 ms. O low latency chega a 5-9 ms só porque descarta metade dos frames (30 fps efetivos), então não é meta. Sub-passos:
    - 4a. Medir: sessão longa (3-4 min) com Cadence para ver se o `qwait` oscila em dente de serra (fase entre o relógio do host e o tick de 60 Hz) e qual é a média de longo prazo. Aceite: gráfico/tabela do `qwait` por segundo.
+   - 4a feito (log 617 s, build 814c633, Cadence): `qwait` média 10,7 ms (2,6 a 25,6), `cpipe` média 14,3 ms (p95 20,5), juder 29‰, `late` 3,8/s, `rendered_fps` 60,00. O `qwait` sobe cerca de 0,03 ms/s e cai de repente: é o dente de serra da fase entre o relógio do host e o tick de 60 Hz (período de vários minutos, inferência de ~30 ppm). A média de longo prazo fica perto de meio tick (8,3 ms) mais a folga; o juder sobe (50-90‰) perto da virada da fase. Logo, comparar A/B exige sessões de 5 min ou mais.
+   - 4b feito no código (opção **Cadence cushion**: Standard / Tight / Minimal, só Settings, vale na próxima stream, registrada no cabeçalho do log). Falta testar no aparelho.
    - 4b. Folga (cushion): hoje 2x MAD, piso 0,5 ms. Testar 1x MAD (preset `vrr_latency` do Punktfunk) e piso menor, A/B por log. Custo esperado da folga = a própria folga em média (1-4 ms nos logs). Ganho esperado pequeno (1-2 ms); só vale se o juder e o `late/s` não piorarem.
    - 4c. Investigar a fila depois do envio ao display: quantas imagens tem a swapchain do deko3d dentro do Borealis (não medido pelo `cpipe`). Pode valer 1-2 vsyncs (17-33 ms), a maior alavanca possível, mas mexe em biblioteca fora do repo. Só ler e medir; decidir antes de alterar.
    - Aceite do passo: `cpipe` menor que 17,5 ms com juder (vs esperado) não pior que ~30‰ e `shown` >= 57 fps, no mesmo jogo/cena.
@@ -62,7 +64,6 @@ Resultados já medidos (host Punktfunk, 192.168.0.133, 720p60 HEVC 10 Mbps, hand
 - Buracos de ~60 ms (`rcv_fps` 48-52, `netdrops` 0) aparecem em todos os modos; a pista aponta para o host (frames repetidos pela captura, `repeat_fps` no JSON do host). Investigação separada, fora deste roadmap.
 
 ## 7. Pendências
-- Fazer o fork na conta do Bruno e adicionar o repo à sessão.
 - Confirmar no aparelho se o oficial mostra os mesmos contadores.
 - Verificar se o loop do Borealis dá o tempo do vsync ou se só dá para usar steady_clock (ver `reference/switch-api/vi.h`, `viGetDisplayVsyncEvent`).
 - Confirmar nos logs que `presentationTimeMs` tem deltas regulares com o host Punktfunk.

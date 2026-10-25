@@ -67,6 +67,8 @@ Inspired by Moonlight-Switch issue [#323](https://github.com/XITRIX/Moonlight-Sw
 
 Off by default. Instead of showing a frame when it arrives, the client reads the timestamp the host put on it and keeps that rhythm: due time = host timestamp + tracked offset + a small cushion (about twice the typical arrival deviation, never more than one frame). At each display tick the newest frame whose due time has passed is shown, older due frames are dropped, and the last image repeats when nothing is due.
 
+The cushion can be changed in Settings (**Cadence cushion**: Standard, Tight, Minimal) so two sessions can be compared. The wait between decode and display also drifts slowly: the host clock and the 60 Hz display tick differ by a few tens of ppm, so `qwait` rises and falls over several minutes. Compare modes with sessions of 5 minutes or more.
+
 Logic adapted from [Punktfunk](https://github.com/punktfunk/punktfunk). It evens out network jitter between frames; it cannot hide a frame that never arrives. The session log records `late` (frame already past due on arrival), `reanchors` (the clock gave up tracking) and the current cushion. With non-Punktfunk hosts the timestamp may mean something else, so keep this mode optional.
 
 ## Judder ruler and per-second counters

@@ -109,14 +109,16 @@ size_t AVFrameQueue::capacityFor(size_t configuredQueueSize) {
 
 void AVFrameQueue::configure(size_t queueLimit, int configuredStreamFps,
                              bool transferOwnershipEnabled,
-                             bool lowLatencyEnabled, bool cadenceEnabled) {
+                             bool lowLatencyEnabled, bool cadenceEnabled,
+                             int cadenceCushion) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     const size_t configuredDepth = std::max<size_t>(queueLimit, 1);
     limit         = capacityFor(configuredDepth);
     cadence       = cadenceEnabled;
     lowLatency    = lowLatencyEnabled && !cadenceEnabled;
-    cadenceClock  = artemis::streaming::CadenceClock{};
+    cadenceTuning = artemis::streaming::cadenceTuningForCushion(cadenceCushion);
+    cadenceClock  = artemis::streaming::CadenceClock{cadenceTuning};
     pendingSrcPtsUs = 0;
 
     if (lowLatency) {
@@ -599,7 +601,7 @@ void AVFrameQueue::cleanup() {
     startupBuffering         = true;
     playoutResyncNeeded      = true;
 
-    cadenceClock = artemis::streaming::CadenceClock{};
+    cadenceClock = artemis::streaming::CadenceClock{cadenceTuning};
     pendingSrcPtsUs = 0;
 
     resetLLFilterLocked();

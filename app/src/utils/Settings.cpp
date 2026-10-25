@@ -452,6 +452,10 @@ void Settings::load() {
                 m_cadence_pacing = json_typeof(cadence_pacing) == JSON_TRUE;
             }
 
+            if (json_t* cadence_cushion = json_object_get(settings, "cadence_cushion")) {
+                m_cadence_cushion = std::clamp<int>(json_integer_value(cadence_cushion), 0, 2);
+            }
+
             if (json_t* hw_decoding = json_object_get(settings, "use_hw_decoding")) {
                 m_use_hw_decoding = json_typeof(hw_decoding) == JSON_TRUE;
             }
@@ -890,6 +894,7 @@ void Settings::save() {
             json_object_set_new(settings, "frames_queue_size", json_integer(m_frames_queue_size));
             json_object_set_new(settings, "low_latency_pacing", m_low_latency_pacing ? json_true() : json_false());
             json_object_set_new(settings, "cadence_pacing", m_cadence_pacing ? json_true() : json_false());
+            json_object_set_new(settings, "cadence_cushion", json_integer(m_cadence_cushion));
             json_object_set_new(settings, "enable_hdr", m_enable_hdr ? json_true() : json_false());
             json_object_set_new(settings, "enable_upscaling", upscaling() ? json_true() : json_false());
             json_object_set_new(settings, "upscaling_mode", json_integer(upscaling_mode()));

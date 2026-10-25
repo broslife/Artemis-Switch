@@ -233,5 +233,26 @@ int main() {
         assert(cadenceWorst < 100.0);
     }
 
+    // A tighter preset holds frames for less time than the standard one on
+    // the same link, and never drops below its own floor.
+    {
+        using artemis::streaming::cadenceTuningForCushion;
+        CadenceClock standard(cadenceTuningForCushion(0));
+        CadenceClock tight(cadenceTuningForCushion(1));
+        CadenceClock minimal(cadenceTuningForCushion(2));
+        Lcg rng{11};
+        for (int k = 0; k < 600; ++k) {
+            const int64_t ready = static_cast<int64_t>(ptsAt(k)) + kDomain +
+                                  kDelay + rng.noise(2'000'000);
+            standard.dueNs(ptsAt(k), ready, kPeriod);
+            tight.dueNs(ptsAt(k), ready, kPeriod);
+            minimal.dueNs(ptsAt(k), ready, kPeriod);
+        }
+        assert(tight.cushionNs() < standard.cushionNs());
+        assert(minimal.cushionNs() < tight.cushionNs());
+        assert(tight.cushionNs() >= 250'000);
+        assert(standard.cushionNs() >= 500'000);
+    }
+
     return 0;
 }

@@ -269,6 +269,16 @@ ArtemisSettingsTab::ArtemisSettingsTab() {
                             Settings::instance().set_cadence_pacing(enabled);
                             Settings::instance().save();
                         });
+    cadenceCushion->init("artemis/settings/cadence_cushion"_i18n,
+                         {"artemis/settings/cadence_cushion_standard"_i18n,
+                          "artemis/settings/cadence_cushion_tight"_i18n,
+                          "artemis/settings/cadence_cushion_minimal"_i18n},
+                         std::clamp(Settings::instance().cadence_cushion(), 0,
+                                    2),
+                         [](int selected) {
+                             Settings::instance().set_cadence_cushion(selected);
+                             Settings::instance().save();
+                         });
 
     {
         int queueSize = Settings::instance().frames_queue_size();
@@ -349,6 +359,16 @@ ArtemisSettingsTab::ArtemisSettingsTab() {
                             Settings::instance().set_cadence_pacing(enabled);
                             Settings::instance().save();
                         });
+    cadenceCushion->init("artemis/settings/cadence_cushion"_i18n,
+                         {"artemis/settings/cadence_cushion_standard"_i18n,
+                          "artemis/settings/cadence_cushion_tight"_i18n,
+                          "artemis/settings/cadence_cushion_minimal"_i18n},
+                         std::clamp(Settings::instance().cadence_cushion(), 0,
+                                    2),
+                         [](int selected) {
+                             Settings::instance().set_cadence_cushion(selected);
+                             Settings::instance().save();
+                         });
     framesQueueSize->init("artemis/settings/frames_queue_size"_i18n,
                           {"1", "2", "3", "4", "5"},
                           std::clamp(Settings::instance().frames_queue_size(),

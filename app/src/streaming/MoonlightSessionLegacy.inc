@@ -115,6 +115,7 @@ void MoonlightSession::connection_started() {
         logCfg.bitrateKbps = s->m_config.bitrate; // already in kbps
         logCfg.lowLatencyPacing = Settings::instance().low_latency_pacing();
         logCfg.cadencePacing = Settings::instance().cadence_pacing();
+        logCfg.cadenceCushion = Settings::instance().cadence_cushion();
         logCfg.queueSize = Settings::instance().frames_queue_size();
         logCfg.codec = Settings::instance().video_codec() == H264
                            ? "H264"

@@ -16,6 +16,7 @@
     <brls:BooleanCell id="prevent_packet_loss"/>
     <brls:BooleanCell id="low_latency_pacing"/>
     <brls:BooleanCell id="cadence_pacing"/>
+    <brls:SelectorCell id="cadence_cushion"/>
     <brls:SelectorCell id="frames_queue_size"/>
     <brls:SelectorCell id="packet_size"/>
 

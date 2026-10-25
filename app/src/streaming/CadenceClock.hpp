@@ -31,6 +31,23 @@ struct CadenceTuning {
     int64_t reanchorGapNs = 500'000'000;
 };
 
+// Cushion presets, selectable in Settings so logs can be compared A/B.
+// 0 = standard (2x MAD, floor 0.5 ms), 1 = tight (1x MAD, floor 0.25 ms; the
+// Punktfunk vrr_latency cushion), 2 = minimal (0.5x MAD, no floor).
+inline CadenceTuning cadenceTuningForCushion(int preset) {
+    CadenceTuning t;
+    if (preset == 1) {
+        t.cushionNum = 1;
+        t.cushionDen = 1;
+        t.cushionFloorNs = 250'000;
+    } else if (preset >= 2) {
+        t.cushionNum = 1;
+        t.cushionDen = 2;
+        t.cushionFloorNs = 0;
+    }
+    return t;
+}
+
 struct CadenceHealth {
     uint64_t frames = 0;
     // Due time was already past when the frame became presentable.
