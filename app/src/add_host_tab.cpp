@@ -30,6 +30,9 @@ artemis::remote::ProbeCache& peerProbeCache() {
 #include "home_screen.hpp"
 #include "features/host/HostAddressParse.hpp"
 
+using namespace brls;
+using namespace brls::literals;
+
 #if defined(PLATFORM_IOS) || defined(PLATFORM_TVOS) || defined(PLATFORM_VISIONOS)
 extern void darwin_mdns_start(ServerCallback<std::vector<Host>>& callback);
 extern void darwin_mdns_stop();
