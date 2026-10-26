@@ -65,6 +65,7 @@ unsigned int sceLibcHeapSize             = 24 * 1024 * 1024;
 #endif
 #include <main_args.hpp>
 
+using namespace brls;
 using namespace brls::literals; // for _i18n
 
 #ifdef __SWITCH__
