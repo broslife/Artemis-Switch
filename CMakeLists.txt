@@ -855,6 +855,7 @@ endif ()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         app/include
+        app/src
         app/include/gestures
         app/src/crypto
         app/src/gestures
