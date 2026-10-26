@@ -73,6 +73,9 @@
         "on": "Ligado",
         "submit": "Done"
     },
+    "favorites": {
+        "games": "{} jogos"
+    },
     "home": {
         "title": "Escolha onde jogar",
         "subtitle": "{} PCs encontrados",

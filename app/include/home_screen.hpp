@@ -25,7 +25,7 @@ class HomeScreen : public brls::Box {
 
     // Rebuilds the host cards from the saved hosts.
     void refreshHosts();
-    // Shows or hides the Favorites button after favorites changed.
+    // Shows or hides the Favorites star after favorites changed.
     void updateFavoritesIfNeeded();
 
   private:
@@ -35,7 +35,7 @@ class HomeScreen : public brls::Box {
     brls::Box* hostList = nullptr;
     brls::Box* gearButton = nullptr;
     brls::Box* addHostButton = nullptr;
-    brls::Box* favoritesButton = nullptr;
+    brls::Box* favoritesIcon = nullptr;
     std::vector<brls::View*> cards;
     bool lastHasAnyFavorites = false;
 
@@ -46,6 +46,8 @@ class HomeScreen : public brls::Box {
     void openSettings();
     void openAddHost();
     void openFavorites();
+    brls::Box* makeRoundButton(const std::string& glyph,
+                               std::function<void()> onClick);
     brls::Box* makeButton(const std::string& glyph, const std::string& text,
                           std::function<void()> onClick);
 };

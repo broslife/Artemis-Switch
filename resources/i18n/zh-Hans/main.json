@@ -73,6 +73,9 @@
         "on": "打开",
         "submit": "完成"
     },
+    "favorites": {
+        "games": "{} games"
+    },
     "home": {
         "title": "Choose where to play",
         "subtitle": "{} PCs found",

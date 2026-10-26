@@ -395,6 +395,9 @@
         "on": "Oui",
         "submit": "Terminé"
     },
+    "favorites": {
+        "games": "{} games"
+    },
     "home": {
         "title": "Choose where to play",
         "subtitle": "{} PCs found",

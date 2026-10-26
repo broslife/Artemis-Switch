@@ -9,6 +9,7 @@
 #include "favorite_tab.hpp"
 #include "host_card.hpp"
 #include "settings_screen.hpp"
+#include "views/footer_status.hpp"
 #include "views/glyph_view.hpp"
 #include "views/status_bar.hpp"
 #include "UiPreview.hpp"
@@ -67,26 +68,10 @@ HomeScreen::HomeScreen() {
     auto* right = new brls::Box(brls::Axis::ROW);
     right->setAlignItems(brls::AlignItems::CENTER);
 
-    auto* gear = new brls::Box(brls::Axis::ROW);
-    gear->setWidth(56);
-    gear->setHeight(56);
-    gear->setCornerRadius(28);
-    gear->setHighlightCornerRadius(28);
-    gear->setBackgroundColor(theme["artemis/card"]);
-    gear->setBorderColor(theme["artemis/card_line"]);
-    gear->setBorderThickness(2);
-    gear->setJustifyContent(brls::JustifyContent::CENTER);
-    gear->setAlignItems(brls::AlignItems::CENTER);
-    gear->setMarginRight(24);
-    gear->setFocusable(true);
-    gear->addView(new GlyphView("", 32, theme["brls/text"]));
-    gear->addGestureRecognizer(new brls::TapGestureRecognizer(gear));
-    gear->registerClickAction([this](brls::View*) {
-        openSettings();
-        return true;
-    });
-    gearButton = gear;
-    right->addView(gear);
+    favoritesIcon = makeRoundButton("", [this] { openFavorites(); });
+    right->addView(favoritesIcon);
+    gearButton = makeRoundButton("", [this] { openSettings(); });
+    right->addView(gearButton);
     right->addView(new StatusBar());
     header->addView(right);
     addView(header);
@@ -120,10 +105,6 @@ HomeScreen::HomeScreen() {
     addHostButton = makeButton("", "tabs/add_host"_i18n,
                                [this] { openAddHost(); });
     actions->addView(addHostButton);
-    favoritesButton = makeButton("", "tabs/favorites"_i18n,
-                                 [this] { openFavorites(); });
-    favoritesButton->setMarginLeft(24);
-    actions->addView(favoritesButton);
     addView(actions);
 
     registerAction("tabs/settings"_i18n, brls::ControllerButton::BUTTON_START,
@@ -134,7 +115,7 @@ HomeScreen::HomeScreen() {
 
     refreshHosts();
     lastHasAnyFavorites = hasAnyFavorite();
-    favoritesButton->setVisibility(lastHasAnyFavorites
+    favoritesIcon->setVisibility(lastHasAnyFavorites
                                        ? brls::Visibility::VISIBLE
                                        : brls::Visibility::GONE);
 }
@@ -142,6 +123,30 @@ HomeScreen::HomeScreen() {
 HomeScreen::~HomeScreen() {
     if (current == this)
         current = nullptr;
+}
+
+brls::Box* HomeScreen::makeRoundButton(const std::string& glyph,
+                                       std::function<void()> onClick) {
+    brls::Theme theme = brls::Application::getTheme();
+    auto* button = new brls::Box(brls::Axis::ROW);
+    button->setWidth(56);
+    button->setHeight(56);
+    button->setCornerRadius(28);
+    button->setHighlightCornerRadius(28);
+    button->setBackgroundColor(theme["artemis/card"]);
+    button->setBorderColor(theme["artemis/card_line"]);
+    button->setBorderThickness(2);
+    button->setJustifyContent(brls::JustifyContent::CENTER);
+    button->setAlignItems(brls::AlignItems::CENTER);
+    button->setMarginRight(24);
+    button->setFocusable(true);
+    button->addView(new GlyphView(glyph, 32, theme["brls/text"]));
+    button->addGestureRecognizer(new brls::TapGestureRecognizer(button));
+    button->registerClickAction([onClick](brls::View*) {
+        onClick();
+        return true;
+    });
+    return button;
 }
 
 brls::Box* HomeScreen::makeButton(const std::string& glyph,
@@ -184,16 +189,7 @@ brls::View* HomeScreen::getDefaultFocus() {
     return addHostButton->getDefaultFocus();
 }
 
-void HomeScreen::hideFooterStatus() {
-    // Battery and clock are in the header, so the footer keeps only the hints.
-    brls::View* root = this;
-    while (root->hasParent())
-        root = root->getParent();
-    for (const char* id : {"brls/battery", "brls/wireless", "brls/hints/time"}) {
-        if (brls::View* view = root->getView(id))
-            view->setVisibility(brls::Visibility::GONE);
-    }
-}
+void HomeScreen::hideFooterStatus() { artemis::ui::hideFooterStatus(this); }
 
 void HomeScreen::updateNavigation() {
     using brls::FocusDirection;
@@ -213,8 +209,8 @@ void HomeScreen::updateNavigation() {
                                                addHostButton);
     }
     addHostButton->setCustomNavigationRoute(FocusDirection::UP, lastRowStart);
-    favoritesButton->setCustomNavigationRoute(FocusDirection::UP,
-                                              lastRowStart);
+    favoritesIcon->setCustomNavigationRoute(
+        FocusDirection::DOWN, cards.empty() ? addHostButton : cards.front());
 }
 
 void HomeScreen::refreshHosts() {
@@ -263,7 +259,7 @@ void HomeScreen::updateFavoritesIfNeeded() {
     if (has == lastHasAnyFavorites)
         return;
     lastHasAnyFavorites = has;
-    favoritesButton->setVisibility(has ? brls::Visibility::VISIBLE
+    favoritesIcon->setVisibility(has ? brls::Visibility::VISIBLE
                                        : brls::Visibility::GONE);
 }
 
@@ -276,7 +272,7 @@ void HomeScreen::openAddHost() {
 }
 
 void HomeScreen::openFavorites() {
-    pushFramedActivity(new FavoriteTab(), "tabs/favorites"_i18n);
+    pushFramedActivity(new FavoriteTab(), "");
 }
 
 brls::View* HomeScreen::create() { return new HomeScreen(); }

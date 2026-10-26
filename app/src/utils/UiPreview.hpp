@@ -38,16 +38,25 @@ inline bool enabled() {
 }
 
 inline std::vector<MockHost> hosts() {
-    const auto make = [](const char* name, const char* address, State state) {
+    const auto make = [](const char* name, const char* address, State state,
+                         std::vector<App> favorites = {}) {
         Host host;
         host.hostname = name;
         host.address = address;
+        host.favorites = std::move(favorites);
         host.ensure_endpoints();
         return MockHost{host, state};
     };
     return {
-        make("XITRIX", "192.168.0.10", State::Available),
-        make("LIVING-ROOM-PC", "192.168.0.11", State::Available),
+        make("XITRIX", "192.168.0.10", State::Available,
+             {{"Genshin Impact", 1},
+              {"No Man's Sky", 2},
+              {"Steam", 3},
+              {"Elder Scrolls Online", 4},
+              {"Grand Theft Auto V", 5},
+              {"Sea of Thieves", 6}}),
+        make("LIVING-ROOM-PC", "192.168.0.11", State::Available,
+             {{"Crimson Desert", 7}, {"Minecraft", 8}}),
         make("BEDROOM-LAPTOP", "192.168.0.12", State::Unavailable),
         make("OFFICE-WORKSTATION-WITH-A-LONG-NAME", "192.168.0.13",
              State::Fetching),

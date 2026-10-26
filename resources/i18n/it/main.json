@@ -73,6 +73,9 @@
         "on": "On",
         "submit": "Done"
     },
+    "favorites": {
+        "games": "{} games"
+    },
     "home": {
         "title": "Choose where to play",
         "subtitle": "{} PCs found",
