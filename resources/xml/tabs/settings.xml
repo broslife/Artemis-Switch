@@ -1,264 +1,141 @@
-<brls:Box
-    width="auto"
-    height="auto">
-
-    <brls:ScrollingFrame
-        width="auto"
-        height="auto"
-        axis="column"
-        alignItems="stretch"
-        grow="1.0" >
-        
-        <brls:Box
-            width="10000"
-            height="auto"
-            axis="column"
-            alignItems="stretch"
-            paddingTop="@style/brls/tab_details/padding_top"
-            paddingRight="@style/brls/tab_details/padding_right"
-            paddingBottom="@style/brls/tab_details/padding_bottom"
-            paddingLeft="@style/brls/tab_details/padding_left">
-            
-            <brls:Header
-                title="@i18n/settings/language"/>
-
-            <brls:SelectorCell
-                id="app_locale"/>
-
-            <brls:Header
-                title="@i18n/settings/quality"
-                paddingTop="60"/>
-                
-            <brls:SelectorCell
-                id="fps"/>
-                    
-            <brls:SelectorCell
-                id="resolution"/>
-
-            <brls:Header
-                id="resolution_lag_warning"
-                title="@i18n/settings/resolution_high_warning"/>
-
-            <brls:SelectorCell
-                id="aspect_ratio"/>
-
-            <brls:SelectorCell
-                id="resolution_scale"/>
-                
-            <brls:SelectorCell
-                id="codec"/>
-
-            <brls:BooleanCell
-                id="request_hdr"/>
-                
-            <brls:SelectorCell
-                id="decoder"/>
-
-            <brls:BooleanCell
-                id="use_hw_decoding"/>
-
-            <brls:Header
-                id="header"
-                title="@i18n/settings/video_bitrate"
-                subtitle="10.0 Mbps"
-                paddingTop="60"/>
-                
-            <brls:Slider
-                id="slider"
-                width="auto"
-                height="84"
-                grow="1"/>
-
-            <brls:Header
-                id="image_adjustments_header"
-                title="@i18n/settings/image_adjustments"
-                paddingTop="60"
-                lineTop="1px"/>
-
-            <BooleanSliderCell
-                id="dithering"/>
-
-            <brls:BooleanCell
-                id="upscaling"/>
-
-            <brls:SelectorCell
-                id="upscaling_mode"/>
-
-            <BooleanSliderCell
-                id="rcas"/>
-            
-            <brls:Header
-                title="@i18n/settings/stream_settings"
-                paddingTop="60"/>
-
-            <brls:SelectorCell
-                id="audio_backend"/>
-
-            <brls:BooleanCell
-                id="optimal"/>
-            
-            <brls:BooleanCell
-                id="pcAudio"/>
-
-            <brls:SelectorCell
-                id="stream_audio_configuration"/>
-
-            <brls:BooleanCell
-                id="terminate_app_on_disconnect"/>
-                
-            <brls:BooleanCell
-                id="volume_amplification"/>
-
-            <brls:Header
-                title="@i18n/settings/host_device"
-                paddingTop="60"/>
-
-            <brls:SelectorCell
-                id="host_device_os"/>
-                
-            <brls:Header
-                title="@i18n/settings/keys"
-                paddingTop="60"/>
-                
-            <brls:BooleanCell
-                id="swap_ui_ab"/>
-
-            <brls:BooleanCell
-                id="swap_ui_xy"/>
-                
-            <brls:DetailCell
-                id="swap_game"/>
-
-            <brls:Header
-                    title="@i18n/settings/deadzone/title"
-                    paddingTop="60"/>
-
-            <brls:DetailCell
-                    id="dead_zone_stick_left"/>
-
-            <brls:DetailCell
-                    id="dead_zone_stick_right"/>
-
-            <brls:Header
-                id="rumble_slider_header"
-                title="@i18n/settings/rumble_force"
-                subtitle="100%"
-                paddingTop="60"/>
-                
-            <brls:Slider
-                id="rumble_slider"
-                width="auto"
-                height="84"
-                grow="1"/>
-
-            <brls:Header
-                title="@i18n/settings/single_joycon"
-                paddingTop="60"
-                lineTop="1px"/>
-
-            <brls:BooleanCell
-                id="swap_stick_to_dpad"/>
-
-            <brls:Header
-                title="@i18n/settings/guide_key"
-                paddingTop="60"/>
-            
-            <brls:DetailCell
-                id="guide_key_buttons"/>
-                
-            <brls:SelectorCell
-                id="guide_by_system_button"/>
-                
-            <brls:Header
-                title="@i18n/settings/overlay"
-                paddingTop="60"/>
-                
-            <brls:SelectorCell
-                id="overlay_time"/>
-            
-            <brls:DetailCell
-                id="overlay_buttons"/>
-                
-            <brls:SelectorCell
-                id="overlay_by_system_button"/>
-
-            <brls:SelectorCell
-                id="debug_stats_corner"/>
-
-            <brls:BooleanCell
-                id="disable_overlay_swipe"/>
-                
-            <brls:Header
-                title="@i18n/settings/mouse_input"
-                paddingTop="60"/>
-                
-            <brls:SelectorCell
-                id="mouse_input_time"/>
-            
-            <brls:DetailCell
-                id="mouse_input_buttons"/>
-
-            <brls:Header
-                title="@i18n/settings/keyboard"
-                paddingTop="60"/>
-
-            <brls:SelectorCell
-                id="keyboard_type"/>
-
-            <brls:SelectorCell
-                id="keyboard_locale"/>
-
-            <brls:SelectorCell
-                id="keyboard_fingers"/>
-                
-            <brls:Header
-                title="@i18n/settings/mouse"
-                paddingTop="60"/>
-
-            <brls:BooleanCell
-                id="touchscreen_mouse_mode"/>
-                
-            <brls:BooleanCell
-                id="swap_mouse_keys"/>
-                
-            <brls:BooleanCell
-                id="swap_mouse_scroll"/>
-
-            <brls:BooleanCell
-                id="swap_mouse_sticks"/>
-        
-            <brls:Header
-                id="mouse_speed_header"
-                title="@i18n/settings/mouse_speed"
-                subtitle="x1.0"
-                paddingTop="60"/>
-                
-            <brls:Slider
-                id="mouse_speed_slider"
-                width="auto"
-                height="84"
-                grow="1"/>
-                
-            <brls:Header
-                title="@i18n/settings/debug"
-                paddingTop="60"
-                lineTop="1px"/>
-
-            <brls:BooleanCell
-                id="show_host_web_config"/>
-
-            <brls:BooleanCell
-                id="show_performance_tab"/>
-                
-            <brls:BooleanCell
-                id="writeLog"/>
-
-            <ArtemisSettingsTab
-                width="100%"
-                height="auto"/>
-            
+<brls:Box width="auto" height="auto">
+    <brls:ScrollingFrame id="settings_scroll" width="auto" height="auto" axis="column" alignItems="stretch" grow="1.0" >
+        <brls:Box width="10000" height="auto" axis="column" alignItems="stretch" paddingTop="@style/brls/tab_details/padding_top" paddingRight="@style/brls/tab_details/padding_right" paddingBottom="@style/brls/tab_details/padding_bottom" paddingLeft="@style/brls/tab_details/padding_left">
+            <brls:Box id="grp_language" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/language"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:SelectorCell id="app_locale"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_quality" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/quality"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:SelectorCell id="fps"/>
+                    <brls:SelectorCell id="resolution"/>
+                    <brls:Header id="resolution_lag_warning" title="@i18n/settings/resolution_high_warning"/>
+                    <brls:SelectorCell id="aspect_ratio"/>
+                    <brls:SelectorCell id="resolution_scale"/>
+                    <brls:SelectorCell id="codec"/>
+                    <brls:BooleanCell id="request_hdr"/>
+                    <brls:SelectorCell id="decoder"/>
+                    <brls:BooleanCell id="use_hw_decoding"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_bitrate" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header id="header" title="@i18n/settings/video_bitrate" subtitle="10.0 Mbps"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:Slider id="slider" width="auto" height="84" grow="1"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_image" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header id="image_adjustments_header" title="@i18n/settings/image_adjustments"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <BooleanSliderCell id="dithering"/>
+                    <brls:BooleanCell id="upscaling"/>
+                    <brls:SelectorCell id="upscaling_mode"/>
+                    <BooleanSliderCell id="rcas"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_audio" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/stream_settings"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:SelectorCell id="audio_backend"/>
+                    <brls:BooleanCell id="pcAudio"/>
+                    <brls:SelectorCell id="stream_audio_configuration"/>
+                    <brls:BooleanCell id="volume_amplification"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_host" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/host_device"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:SelectorCell id="host_device_os"/>
+                    <brls:BooleanCell id="optimal"/>
+                    <brls:BooleanCell id="terminate_app_on_disconnect"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_keys" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/keys"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:BooleanCell id="swap_ui_ab"/>
+                    <brls:BooleanCell id="swap_ui_xy"/>
+                    <brls:DetailCell id="swap_game"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_deadzone" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/deadzone/title"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:DetailCell id="dead_zone_stick_left"/>
+                    <brls:DetailCell id="dead_zone_stick_right"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_rumble" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header id="rumble_slider_header" title="@i18n/settings/rumble_force" subtitle="100%"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:Slider id="rumble_slider" width="auto" height="84" grow="1"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_joycon" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/single_joycon"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:BooleanCell id="swap_stick_to_dpad"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_guide" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/guide_key"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:DetailCell id="guide_key_buttons"/>
+                    <brls:SelectorCell id="guide_by_system_button"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_overlay" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/overlay"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:SelectorCell id="overlay_time"/>
+                    <brls:DetailCell id="overlay_buttons"/>
+                    <brls:SelectorCell id="overlay_by_system_button"/>
+                    <brls:SelectorCell id="debug_stats_corner"/>
+                    <brls:BooleanCell id="disable_overlay_swipe"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_mouse_input" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/mouse_input"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:SelectorCell id="mouse_input_time"/>
+                    <brls:DetailCell id="mouse_input_buttons"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_keyboard" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/keyboard"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:SelectorCell id="keyboard_type"/>
+                    <brls:SelectorCell id="keyboard_locale"/>
+                    <brls:SelectorCell id="keyboard_fingers"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_mouse" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/mouse"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:BooleanCell id="touchscreen_mouse_mode"/>
+                    <brls:BooleanCell id="swap_mouse_keys"/>
+                    <brls:BooleanCell id="swap_mouse_scroll"/>
+                    <brls:BooleanCell id="swap_mouse_sticks"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_mouse_speed" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header id="mouse_speed_header" title="@i18n/settings/mouse_speed" subtitle="x1.0"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:Slider id="mouse_speed_slider" width="auto" height="84" grow="1"/>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box id="grp_debug" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/settings/debug"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:BooleanCell id="show_host_web_config"/>
+                    <brls:BooleanCell id="show_performance_tab"/>
+                    <brls:BooleanCell id="writeLog"/>
+                </brls:Box>
+            </brls:Box>
+            <ArtemisSettingsTab width="100%" height="auto"/>
         </brls:Box>
-
     </brls:ScrollingFrame>
-
 </brls:Box>

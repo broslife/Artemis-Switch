@@ -127,6 +127,15 @@
         "title": "Modo mouse"
     },
     "settings": {
+        "sections": {
+            "video": "Vídeo",
+            "audio": "Áudio",
+            "host": "Host e stream",
+            "controls": "Controles",
+            "overlay": "Overlay no jogo",
+            "input": "Entrada",
+            "advanced": "Avançado e depuração"
+        },
         "audio_backend": "Audio driver",
         "av1": "AV1 (Experimental)",
         "buttons": {

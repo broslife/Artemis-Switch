@@ -127,6 +127,15 @@
         "title": "마우스 입력 모드"
     },
     "settings": {
+        "sections": {
+            "video": "Video",
+            "audio": "Audio",
+            "host": "Host and stream",
+            "controls": "Controls",
+            "overlay": "In-game overlay",
+            "input": "Input",
+            "advanced": "Advanced and debug"
+        },
         "audio_backend": "오디오 드라이버",
         "av1": "AV1 (실험용)",
         "buttons": {

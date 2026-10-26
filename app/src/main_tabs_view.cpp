@@ -10,7 +10,7 @@
 #include "about_tab.hpp"
 #include "add_host_tab.hpp"
 #include "host_tab.hpp"
-#include "settings_tab.hpp"
+#include "settings_screen.hpp"
 
 MainTabs::MainTabs() {
     favoriteTab = new FavoriteTab();
@@ -61,7 +61,7 @@ void MainTabs::refillTabs(bool keepFocus) {
         addSeparator();
 
     addTab("tabs/add_host"_i18n, AddHostTab::create);
-    addTab("tabs/settings"_i18n, SettingsTab::create);
+    addTab("tabs/settings"_i18n, SettingsScreen::create);
     addSeparator();
     addTab("tabs/about"_i18n, AboutTab::create);
     sidebar->setContentOffsetY(-40, false);

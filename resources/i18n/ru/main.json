@@ -127,6 +127,15 @@
         "title": "Режим ввода мышью"
     },
     "settings": {
+        "sections": {
+            "video": "Video",
+            "audio": "Audio",
+            "host": "Host and stream",
+            "controls": "Controls",
+            "overlay": "In-game overlay",
+            "input": "Input",
+            "advanced": "Advanced and debug"
+        },
         "audio_backend": "Аудио драйвер",
         "av1": "AV1 (Экспериментальный)",
         "buttons": {
