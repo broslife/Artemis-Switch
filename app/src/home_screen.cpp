@@ -16,7 +16,7 @@ using namespace brls::literals;
 
 namespace {
 constexpr float kSideMargin = 56.0f;
-constexpr int kCardsPerRow = 3;
+constexpr size_t kCardsPerRow = 3;
 
 void pushFramedActivity(brls::View* content, const std::string& title) {
     auto* frame = new brls::AppletFrame(content);
@@ -79,6 +79,7 @@ HomeScreen::HomeScreen() {
         openSettings();
         return true;
     });
+    gearButton = gear;
     right->addView(gear);
     right->addView(new StatusBar());
     header->addView(right);
@@ -110,19 +111,15 @@ HomeScreen::HomeScreen() {
     // Actions.
     auto* actions = new brls::Box(brls::Axis::ROW);
     actions->setPadding(12, kSideMargin, 20, kSideMargin);
-    actions->addView(makeButton("", "tabs/add_host"_i18n,
-                                [this] { openAddHost(); }));
+    addHostButton = makeButton("", "tabs/add_host"_i18n,
+                               [this] { openAddHost(); });
+    actions->addView(addHostButton);
     favoritesButton = makeButton("", "tabs/favorites"_i18n,
                                  [this] { openFavorites(); });
     favoritesButton->setMarginLeft(24);
     actions->addView(favoritesButton);
     addView(actions);
 
-    registerAction("tabs/add_host"_i18n, brls::ControllerButton::BUTTON_X,
-                   [this](brls::View*) {
-                       openAddHost();
-                       return true;
-                   });
     registerAction("tabs/settings"_i18n, brls::ControllerButton::BUTTON_START,
                    [this](brls::View*) {
                        openSettings();
@@ -171,11 +168,52 @@ brls::Box* HomeScreen::makeButton(const std::string& glyph,
 
 void HomeScreen::willAppear(bool resetState) {
     Box::willAppear(resetState);
+    hideFooterStatus();
     updateFavoritesIfNeeded();
+}
+
+brls::View* HomeScreen::getDefaultFocus() {
+    if (!cards.empty())
+        return cards.front()->getDefaultFocus();
+    return addHostButton->getDefaultFocus();
+}
+
+void HomeScreen::hideFooterStatus() {
+    // Battery and clock are in the header, so the footer keeps only the hints.
+    brls::View* root = this;
+    while (root->hasParent())
+        root = root->getParent();
+    for (const char* id : {"brls/battery", "brls/wireless", "brls/hints/time"}) {
+        if (brls::View* view = root->getView(id))
+            view->setVisibility(brls::Visibility::GONE);
+    }
+}
+
+void HomeScreen::updateNavigation() {
+    using brls::FocusDirection;
+
+    gearButton->setCustomNavigationRoute(
+        FocusDirection::DOWN, cards.empty() ? addHostButton : cards.front());
+
+    // First row goes up to Settings; the last row goes down to the buttons.
+    brls::View* lastRowStart =
+        cards.empty() ? gearButton
+                      : cards[(cards.size() - 1) / kCardsPerRow * kCardsPerRow];
+    for (size_t i = 0; i < cards.size(); i++) {
+        if (i < kCardsPerRow)
+            cards[i]->setCustomNavigationRoute(FocusDirection::UP, gearButton);
+        if (i >= (cards.size() - 1) / kCardsPerRow * kCardsPerRow)
+            cards[i]->setCustomNavigationRoute(FocusDirection::DOWN,
+                                               addHostButton);
+    }
+    addHostButton->setCustomNavigationRoute(FocusDirection::UP, lastRowStart);
+    favoritesButton->setCustomNavigationRoute(FocusDirection::UP,
+                                              lastRowStart);
 }
 
 void HomeScreen::refreshHosts() {
     hostList->clearViews();
+    cards.clear();
 
     const auto hosts = Settings::instance().hosts();
     subtitle->setText(hosts.empty()
@@ -193,7 +231,9 @@ void HomeScreen::refreshHosts() {
         if (i % kCardsPerRow != kCardsPerRow - 1)
             card->setMarginRight(32);
         row->addView(card);
+        cards.push_back(card);
     }
+    updateNavigation();
 }
 
 void HomeScreen::updateFavoritesIfNeeded() {

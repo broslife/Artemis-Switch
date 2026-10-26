@@ -44,7 +44,6 @@ class HostCard : public brls::Box {
     void applyStyle();
     void connectOrWake();
     void showOptions();
-    void createProfileForHost();
     void quickEditProfile();
     void quickDeleteProfile();
 };

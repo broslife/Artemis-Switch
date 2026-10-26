@@ -43,7 +43,7 @@ HostCard::HostCard(const Host& host) : brls::Box(brls::Axis::COLUMN), host(host)
         return true;
     });
 
-    registerAction("host/rename"_i18n, brls::ControllerButton::BUTTON_START,
+    registerAction("host/rename"_i18n, brls::ControllerButton::BUTTON_BACK,
                    [this](brls::View*) {
                        std::string title = this->host.hostname;
                        brls::Application::getPlatform()->getImeManager()->openForText(
@@ -53,13 +53,6 @@ HostCard::HostCard(const Host& host) : brls::Box(brls::Axis::COLUMN), host(host)
                                HomeScreen::instance()->refreshHosts();
                            },
                            "host/rename_title"_i18n, "", 60, title, 0);
-                       return true;
-                   });
-
-    registerAction("host/new_profile"_i18n, brls::ControllerButton::BUTTON_RB,
-                   [this](brls::View*) {
-                       if (state == AVAILABLE)
-                           createProfileForHost();
                        return true;
                    });
 
@@ -231,13 +224,6 @@ void HostCard::connectOrWake() {
                 }
             });
         });
-}
-
-void HostCard::createProfileForHost() {
-    const auto key = artemis::streaming::host_profile_key(host);
-    brls::sync([key] {
-        artemis::streaming::openProfileEditor({}, key, [] {});
-    });
 }
 
 void HostCard::quickEditProfile() {

@@ -10,6 +10,8 @@
 
 #include <borealis.hpp>
 
+#include <vector>
+
 class HomeScreen : public brls::Box {
   public:
     HomeScreen();
@@ -19,6 +21,7 @@ class HomeScreen : public brls::Box {
     static HomeScreen* instance() { return current; }
 
     void willAppear(bool resetState) override;
+    brls::View* getDefaultFocus() override;
 
     // Rebuilds the host cards from the saved hosts.
     void refreshHosts();
@@ -30,9 +33,16 @@ class HomeScreen : public brls::Box {
 
     brls::Label* subtitle = nullptr;
     brls::Box* hostList = nullptr;
+    brls::Box* gearButton = nullptr;
+    brls::Box* addHostButton = nullptr;
     brls::Box* favoritesButton = nullptr;
+    std::vector<brls::View*> cards;
     bool lastHasAnyFavorites = false;
 
+    // The scrolling list traps the focus, so the way out of it (up to the
+    // Settings button, down to the action buttons) is set explicitly.
+    void updateNavigation();
+    void hideFooterStatus();
     void openSettings();
     void openAddHost();
     void openFavorites();
