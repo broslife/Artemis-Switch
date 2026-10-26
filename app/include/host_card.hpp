@@ -11,6 +11,7 @@
 #include <Settings.hpp>
 #include <borealis.hpp>
 #include <cstdint>
+#include <optional>
 
 #include "views/glyph_view.hpp"
 
@@ -18,7 +19,9 @@ enum HostState { FETCHING, AVAILABLE, UNAVAILABLE };
 
 class HostCard : public brls::Box {
   public:
-    HostCard(const Host& host);
+    // A preview state skips the network and shows the card in that state.
+    HostCard(const Host& host,
+             std::optional<HostState> previewState = std::nullopt);
 
     void reloadHost();
 
@@ -27,6 +30,7 @@ class HostCard : public brls::Box {
 
   private:
     Host host;
+    std::optional<HostState> previewState;
     HostState state = HostState::FETCHING;
     uint64_t wakeRequestGeneration = 0;
     uint64_t canceledWakeRequestGeneration = 0;

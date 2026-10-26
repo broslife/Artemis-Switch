@@ -11,10 +11,16 @@
 #include "settings_screen.hpp"
 #include "views/glyph_view.hpp"
 #include "views/status_bar.hpp"
+#include "UiPreview.hpp"
 
 using namespace brls::literals;
 
 namespace {
+bool hasAnyFavorite() {
+    return artemis::ui_preview::enabled() ||
+           Settings::instance().has_any_favorite();
+}
+
 constexpr float kSideMargin = 56.0f;
 constexpr size_t kCardsPerRow = 3;
 
@@ -127,7 +133,7 @@ HomeScreen::HomeScreen() {
                    });
 
     refreshHosts();
-    lastHasAnyFavorites = Settings::instance().has_any_favorite();
+    lastHasAnyFavorites = hasAnyFavorite();
     favoritesButton->setVisibility(lastHasAnyFavorites
                                        ? brls::Visibility::VISIBLE
                                        : brls::Visibility::GONE);
@@ -215,7 +221,23 @@ void HomeScreen::refreshHosts() {
     hostList->clearViews();
     cards.clear();
 
-    const auto hosts = Settings::instance().hosts();
+    std::vector<Host> hosts;
+    std::vector<std::optional<HostState>> previewStates;
+    if (artemis::ui_preview::enabled()) {
+        for (const auto& mock : artemis::ui_preview::hosts()) {
+            hosts.push_back(mock.host);
+            using State = artemis::ui_preview::State;
+            previewStates.push_back(mock.state == State::Available
+                                        ? AVAILABLE
+                                    : mock.state == State::Unavailable
+                                        ? UNAVAILABLE
+                                        : FETCHING);
+        }
+    } else {
+        hosts = Settings::instance().hosts();
+        previewStates.assign(hosts.size(), std::nullopt);
+    }
+
     subtitle->setText(hosts.empty()
                           ? "home/empty"_i18n
                           : brls::getStr("home/subtitle", hosts.size()));
@@ -227,7 +249,7 @@ void HomeScreen::refreshHosts() {
             row->setMarginBottom(24);
             hostList->addView(row);
         }
-        auto* card = new HostCard(hosts[i]);
+        auto* card = new HostCard(hosts[i], previewStates[i]);
         if (i % kCardsPerRow != kCardsPerRow - 1)
             card->setMarginRight(32);
         row->addView(card);
@@ -237,7 +259,7 @@ void HomeScreen::refreshHosts() {
 }
 
 void HomeScreen::updateFavoritesIfNeeded() {
-    const bool has = Settings::instance().has_any_favorite();
+    const bool has = hasAnyFavorite();
     if (has == lastHasAnyFavorites)
         return;
     lastHasAnyFavorites = has;

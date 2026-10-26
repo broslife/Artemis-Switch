@@ -12,6 +12,7 @@
 #include "streaming/HostStreamProfileUi.hpp"
 #include "streaming/ProfileEditorDialog.hpp"
 #include "streaming/StreamConfigProfileStore.hpp"
+#include "UiPreview.hpp"
 
 using namespace brls::literals;
 
@@ -29,14 +30,17 @@ std::string host_subtitle(const Host& host) {
 }
 } // namespace
 
-HostCard::HostCard(const Host& host) : brls::Box(brls::Axis::COLUMN), host(host) {
+HostCard::HostCard(const Host& host, std::optional<HostState> previewState)
+    : brls::Box(brls::Axis::COLUMN), host(host), previewState(previewState) {
     buildLayout();
     reloadHost();
 
     setFocusable(true);
     addGestureRecognizer(new brls::TapGestureRecognizer(this));
     registerClickAction([this](brls::View*) {
-        if (state == AVAILABLE)
+        if (artemis::ui_preview::enabled()) {
+            brls::Application::notify("Preview mode: no connection is made");
+        } else if (state == AVAILABLE)
             present(new AppListView(this->host));
         else if (state == UNAVAILABLE)
             connectOrWake();
@@ -184,6 +188,10 @@ void HostCard::showOptions() {
 }
 
 void HostCard::connectOrWake() {
+    if (artemis::ui_preview::enabled()) {
+        brls::Application::notify("Preview mode: no connection is made");
+        return;
+    }
     if (!GameStreamClient::can_wake_up_host(this->host))
         return;
 
@@ -267,6 +275,17 @@ void HostCard::reloadHost() {
     subLabel->setText(host_subtitle(host));
     pillLabel->setText("host/wait"_i18n);
     applyStyle();
+
+    if (previewState) {
+        state = *previewState;
+        badgeLabel->setText(state == AVAILABLE   ? "host/ready"_i18n
+                            : state == UNAVAILABLE ? "host/unable"_i18n
+                                                   : "host/fetching"_i18n);
+        pillLabel->setText(state == AVAILABLE ? "host/connect"_i18n
+                                              : "host/wake_up"_i18n);
+        applyStyle();
+        return;
+    }
 
     ASYNC_RETAIN
     GameStreamClient::instance().connect(
