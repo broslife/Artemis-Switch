@@ -35,10 +35,9 @@ unsigned int sceLibcHeapSize             = 24 * 1024 * 1024;
 #include <memory>
 #endif
 #include "artemis_settings_tab.hpp"
-#include "host_tab.hpp"
 #include "link_cell.hpp"
 #include "main_activity.hpp"
-#include "main_tabs_view.hpp"
+#include "home_screen.hpp"
 #include "performance_tab.hpp"
 #include "settings_screen.hpp"
 #include "settings_tab.hpp"
@@ -237,8 +236,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("BooleanSliderCell", BooleanSliderCell::create);
     brls::Application::registerXMLView("LinkCell", LinkCell::create);
 
-    brls::Application::registerXMLView("MainTabs", MainTabs::create);
-    brls::Application::registerXMLView("HostTab", HostTab::create);
+    brls::Application::registerXMLView("HomeScreen", HomeScreen::create);
     brls::Application::registerXMLView("AddHostTab", AddHostTab::create);
     brls::Application::registerXMLView("ArtemisSettingsTab", ArtemisSettingsTab::create);
     brls::Application::registerXMLView("SettingsTab", SettingsTab::create);

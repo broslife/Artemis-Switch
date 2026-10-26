@@ -73,7 +73,13 @@
         "on": "オン",
         "submit": "Done"
     },
+    "home": {
+        "title": "Choose where to play",
+        "subtitle": "{} PCs found",
+        "empty": "No PCs yet. Add one to start streaming."
+    },
     "host": {
+        "options": "Host options",
         "connect": "接続",
         "fetching": "フェッチ中...",
         "ready": "準備完了",

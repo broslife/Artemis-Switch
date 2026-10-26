@@ -395,7 +395,13 @@
         "on": "Oui",
         "submit": "Terminé"
     },
+    "home": {
+        "title": "Choose where to play",
+        "subtitle": "{} PCs found",
+        "empty": "No PCs yet. Add one to start streaming."
+    },
     "host": {
+        "options": "Host options",
         "add_endpoint": "Ajouter une adresse",
         "add_endpoint_title": "Adresse hôte (LAN, Tailscale, IP publique)",
         "connect": "Se connecter",

@@ -135,6 +135,12 @@
                     <brls:BooleanCell id="writeLog"/>
                 </brls:Box>
             </brls:Box>
+            <brls:Box id="grp_about" axis="column" alignItems="stretch" marginBottom="28">
+                <brls:Header title="@i18n/about/title"/>
+                <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+                    <brls:DetailCell id="about_link"/>
+                </brls:Box>
+            </brls:Box>
             <ArtemisSettingsTab width="100%" height="auto"/>
         </brls:Box>
     </brls:ScrollingFrame>

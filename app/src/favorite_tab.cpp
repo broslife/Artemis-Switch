@@ -7,7 +7,7 @@
 
 #include "favorite_tab.hpp"
 #include "app_cell.hpp"
-#include "main_tabs_view.hpp"
+#include "home_screen.hpp"
 #include "forwarder_maker.hpp"
 #include <cstdlib>
 #include <string>
@@ -87,7 +87,7 @@ void FavoriteTab::updateAppList() {
                         section = (int)container->getChildren().size() - 2;
 
                     if (section <= 0) {
-                        MainTabs::getInstanse()->updateFavoritesIfNeeded();
+                        HomeScreen::instance()->updateFavoritesIfNeeded();
                         return true;
                     }
 

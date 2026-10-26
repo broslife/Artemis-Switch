@@ -73,7 +73,13 @@
         "on": "Вкл.",
         "submit": "Готово"
     },
+    "home": {
+        "title": "Choose where to play",
+        "subtitle": "{} PCs found",
+        "empty": "No PCs yet. Add one to start streaming."
+    },
     "host": {
+        "options": "Host options",
         "connect": "Подключиться",
         "fetching": "Обновление...",
         "ready": "Готов",

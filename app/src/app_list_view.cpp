@@ -7,7 +7,7 @@
 
 #include "app_list_view.hpp"
 #include "helper.hpp"
-#include "main_tabs_view.hpp"
+#include "home_screen.hpp"
 #include "MoonlightSession.hpp"
 #include "features/ui/QrCodeView.hpp"
 #include "features/ui/AppLibraryPaging.hpp"
@@ -921,7 +921,6 @@ void AppListView::updateFavoriteAction(AppCell* cell, Host host, const AppInfo& 
                 App thisApp{app.name, app.app_id};
                 Settings::instance().add_favorite(host, thisApp);
             }
-            MainTabs::getInstanse()->getFavoriteTab()->setRefreshNeeded();
             this->updateFavoriteAction(cell, host, app);
             return true;
         });

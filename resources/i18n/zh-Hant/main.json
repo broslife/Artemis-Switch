@@ -73,7 +73,13 @@
         "on": "打開",
         "submit": "完成"
     },
+    "home": {
+        "title": "Choose where to play",
+        "subtitle": "{} PCs found",
+        "empty": "No PCs yet. Add one to start streaming."
+    },
     "host": {
+        "options": "Host options",
         "connect": "連接",
         "fetching": "收取中……",
         "ready": "準備完成",

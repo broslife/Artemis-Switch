@@ -73,7 +73,13 @@
         "on": "On",
         "submit": "Done"
     },
+    "home": {
+        "title": "Choose where to play",
+        "subtitle": "{} PCs found",
+        "empty": "No PCs yet. Add one to start streaming."
+    },
     "host": {
+        "options": "Host options",
         "connect": "Connetti",
         "fetching": "Ottenimento...",
         "ready": "Pronto",

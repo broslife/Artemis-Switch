@@ -73,7 +73,13 @@
         "on": "Ligado",
         "submit": "Done"
     },
+    "home": {
+        "title": "Escolha onde jogar",
+        "subtitle": "{} PCs encontrados",
+        "empty": "Nenhum PC ainda. Adicione um para começar."
+    },
     "host": {
+        "options": "Opções do host",
         "connect": "Conectar",
         "fetching": "Buscando...",
         "ready": "Pronto",
