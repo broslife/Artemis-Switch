@@ -260,7 +260,7 @@ Low latency pacing
 : Adaptive present-deadline gate with aggressive latest-frame-wins. Uses measured render/GPU cost instead of a fixed 6 ms lead. **Off by default**; can stutter more on unstable Wi-Fi. Also on overlay **Options**.
 
 Cadence pacing (experimental)
-: Shows frames on the rhythm stamped by the host instead of the instant they arrive, with a small cushion sized from the measured arrival jitter. **Off by default**; takes priority over Low latency pacing when both are on. Falls back to arrival time for frames without a host timestamp. Also on overlay **Options**. Global setting only (not stored in stream profiles yet).
+: Shows frames on the rhythm stamped by the host instead of the instant they arrive, with a small cushion sized from the measured arrival jitter. **Off by default**; takes priority over Low latency pacing when both are on. Falls back to arrival time for frames without a host timestamp. Also on overlay **Options**. The safety margin is fixed at the Standard value (twice the typical arrival deviation, at least 0.5 ms); logs of tighter margins showed no latency gain and more late frames. Global setting only (not stored in stream profiles yet).
 
 Frame queue size
 : How many decoded frames to keep (1–5, default 3). Low latency pacing still targets at most one buffered frame.

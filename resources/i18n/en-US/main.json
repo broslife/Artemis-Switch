@@ -79,7 +79,7 @@
             "low_latency_pacing": "Low latency pacing",
             "low_latency_pacing_hint": "Adaptive present deadline and latest-frame-wins; lower lag, may stutter on unstable Wi-Fi",
             "cadence_pacing": "Cadence pacing (experimental)",
-            "cadence_pacing_hint": "Paces frames by the host timestamp instead of arrival time; steadier rhythm on a stable host. Takes priority over Low latency pacing. Off by default.",
+            "cadence_pacing_hint": "Paces frames by the host timestamp instead of arrival time; steadier rhythm on a stable host. Takes priority over Low latency pacing. Uses a fixed safety margin (Standard), the best setting in our tests, so there is nothing else to tune. Off by default.",
             "frames_queue_size": "Frame queue size",
             "frames_queue_size_hint": "Buffered frames before present (1–5). Low latency caps target to 0–1.",
             "packet_loss_unverified": "When on with Auto/1392 packet size, uses 1024 bytes for low-MTU / VPN links. Sunshine can still clamp packetsize on the host.",
