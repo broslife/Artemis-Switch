@@ -2,7 +2,7 @@ name: UI Preview (Windows)
 
 # Builds the Windows app only, to check screens on a PC with made-up hosts
 # (ARTEMIS_UI_PREVIEW=1, no network). It is not a release build.
-#
+##
 # Manual runs need this file on the default branch. Until then it also starts
 # when this file changes on new_ui.
 on:
