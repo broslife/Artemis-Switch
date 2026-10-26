@@ -128,14 +128,7 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << (cfg.cadencePacing
               ? "cadence"
               : (cfg.lowLatencyPacing ? "low-latency" : "legacy"))
-      << "  QueueSize: " << cfg.queueSize
-      << (cfg.cadencePacing
-              ? (cfg.cadenceCushion == 1
-                     ? "  Cushion: tight"
-                     : (cfg.cadenceCushion >= 2 ? "  Cushion: minimal"
-                                                : "  Cushion: standard"))
-              : "")
-      << "\n"
+      << "  QueueSize: " << cfg.queueSize << "\n"
       << "# Switch: " << meta.operationMode << "\n"
       << "# File: " << logPath << "\n"
       << "#\n"

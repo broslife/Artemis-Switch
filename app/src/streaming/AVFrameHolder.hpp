@@ -47,8 +47,7 @@ public:
     // lowLatency when both are set.
     void configure(size_t queueLimit, int streamFps,
                    bool transferOwnershipEnabled,
-                   bool lowLatency = false, bool cadence = false,
-                   int cadenceCushion = 0);
+                   bool lowLatency = false, bool cadence = false);
 
     // Host presentation timestamp (microseconds) of the packet being decoded;
     // attached to the next frame pushed. 0 means unknown.
@@ -119,7 +118,6 @@ private:
 
     // ---- Cadence pacing state ----
     artemis::streaming::CadenceClock cadenceClock;
-    artemis::streaming::CadenceTuning cadenceTuning;
     uint64_t pendingSrcPtsUs   = 0;
 
     // ---- Legacy pacing state ----
@@ -202,8 +200,7 @@ class AVFrameHolder : public Singleton<AVFrameHolder> {
         m_frame_queue.configure(Settings::instance().frames_queue_size(),
                                 streamFps, transferOwnership,
                                 Settings::instance().low_latency_pacing(),
-                                Settings::instance().cadence_pacing(),
-                                Settings::instance().cadence_cushion());
+                                Settings::instance().cadence_pacing());
     }
 
     void setSourcePtsUs(uint64_t srcPtsUs) {

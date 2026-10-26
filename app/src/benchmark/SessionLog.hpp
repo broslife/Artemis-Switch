@@ -22,8 +22,6 @@ struct SessionLogConfig {
     bool lowLatencyPacing = false;
     // Takes priority over lowLatencyPacing, as in AVFrameQueue::configure.
     bool cadencePacing = false;
-    // 0 standard, 1 tight, 2 minimal; only meaningful in cadence mode.
-    int cadenceCushion = 0;
     int queueSize = 3;
     std::string codec = "HEVC";
 };
