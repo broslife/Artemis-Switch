@@ -335,6 +335,6 @@ int main(int argc, char* argv[]) {
 #if defined(PLATFORM_TVOS)
     exit(0);
 #endif
-    
+
     return EXIT_SUCCESS;
 }
