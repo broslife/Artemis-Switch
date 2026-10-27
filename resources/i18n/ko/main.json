@@ -76,6 +76,13 @@
     "favorites": {
         "games": "{} games"
     },
+    "games": {
+        "start": "Start",
+        "resume": "Resume",
+        "view_grid": "Grid",
+        "view_carousel": "Carousel",
+        "favorite": "Favorite"
+    },
     "home": {
         "title": "Choose where to play",
         "subtitle": "{} PCs found",

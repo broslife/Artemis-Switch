@@ -264,7 +264,7 @@ void HomeScreen::updateFavoritesIfNeeded() {
 }
 
 void HomeScreen::openSettings() {
-    pushFramedActivity(new SettingsScreen(), "");
+    SettingsScreen::open();
 }
 
 void HomeScreen::openAddHost() {

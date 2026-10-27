@@ -146,3 +146,9 @@ void SettingsScreen::selectSection(size_t index) {
 }
 
 brls::View* SettingsScreen::create() { return new SettingsScreen(); }
+
+void SettingsScreen::open() {
+    auto* frame = new brls::AppletFrame(new SettingsScreen());
+    frame->setHeaderVisibility(brls::Visibility::GONE);
+    brls::Application::pushActivity(new brls::Activity(frame));
+}

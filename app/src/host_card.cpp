@@ -38,9 +38,7 @@ HostCard::HostCard(const Host& host, std::optional<HostState> previewState)
     setFocusable(true);
     addGestureRecognizer(new brls::TapGestureRecognizer(this));
     registerClickAction([this](brls::View*) {
-        if (artemis::ui_preview::enabled()) {
-            brls::Application::notify("Preview mode: no connection is made");
-        } else if (state == AVAILABLE)
+        if (state == AVAILABLE)
             present(new AppListView(this->host));
         else if (state == UNAVAILABLE)
             connectOrWake();

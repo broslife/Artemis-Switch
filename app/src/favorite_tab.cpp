@@ -9,7 +9,7 @@
 #include "UiPreview.hpp"
 #include "forwarder_maker.hpp"
 #include "home_screen.hpp"
-#include "views/favorite_tile.hpp"
+#include "views/game_tile.hpp"
 #include "views/footer_status.hpp"
 #include "views/glyph_view.hpp"
 #include <cstdlib>
@@ -153,7 +153,8 @@ void FavoriteTab::updateAppList() {
 
         for (const App& app : host.favorites) {
             AppInfo info{app.name, app.app_id};
-            auto* cell = new FavoriteTile(host, info);
+            auto* cell = new GameTile(host, info, GameTile::kGridWidth,
+                                    GameTile::kGridHeight);
             gridView->addView(cell);
             total++;
             if (isFirstGroup && firstRow.size() < kColumns)

@@ -20,6 +20,8 @@ class SettingsScreen : public brls::Box {
     SettingsScreen();
 
     static brls::View* create();
+    // Opens Settings as a full screen on top of the current one.
+    static void open();
 
   private:
     void selectSection(size_t index);
