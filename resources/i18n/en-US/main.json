@@ -395,7 +395,22 @@
         "on": "On",
         "submit": "Done"
     },
+    "favorites": {
+        "games": "{} games"
+    },
+    "games": {
+        "close": "Close",
+        "start": "Start",
+        "resume": "Resume",
+        "favorite": "Favorite"
+    },
+    "home": {
+        "title": "Choose where to play",
+        "subtitle": "{} PCs found",
+        "empty": "No PCs yet. Add one to start streaming."
+    },
     "host": {
+        "options": "Host options",
         "add_endpoint": "Add address",
         "add_endpoint_title": "Host address (LAN, Tailscale, public IP)",
         "connect": "Connect",
@@ -460,6 +475,15 @@
         "title": "Mouse input mode"
     },
     "settings": {
+        "sections": {
+            "video": "Video",
+            "audio": "Audio",
+            "host": "Host and stream",
+            "controls": "Controls",
+            "overlay": "In-game overlay",
+            "input": "Input",
+            "advanced": "Advanced and debug"
+        },
         "audio_backend": "Audio driver",
         "av1": "AV1 (Experimental)",
         "buttons": {

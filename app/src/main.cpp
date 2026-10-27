@@ -35,11 +35,11 @@ unsigned int sceLibcHeapSize             = 24 * 1024 * 1024;
 #include <memory>
 #endif
 #include "artemis_settings_tab.hpp"
-#include "host_tab.hpp"
 #include "link_cell.hpp"
 #include "main_activity.hpp"
-#include "main_tabs_view.hpp"
+#include "home_screen.hpp"
 #include "performance_tab.hpp"
+#include "settings_screen.hpp"
 #include "settings_tab.hpp"
 #include "wifi_performance_graph.hpp"
 #include "views/boolean_slider_cell.hpp"
@@ -65,6 +65,7 @@ unsigned int sceLibcHeapSize             = 24 * 1024 * 1024;
 #endif
 #include <main_args.hpp>
 
+using namespace brls;
 using namespace brls::literals; // for _i18n
 
 #ifdef __SWITCH__
@@ -236,8 +237,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("BooleanSliderCell", BooleanSliderCell::create);
     brls::Application::registerXMLView("LinkCell", LinkCell::create);
 
-    brls::Application::registerXMLView("MainTabs", MainTabs::create);
-    brls::Application::registerXMLView("HostTab", HostTab::create);
+    brls::Application::registerXMLView("HomeScreen", HomeScreen::create);
     brls::Application::registerXMLView("AddHostTab", AddHostTab::create);
     brls::Application::registerXMLView("ArtemisSettingsTab", ArtemisSettingsTab::create);
     brls::Application::registerXMLView("SettingsTab", SettingsTab::create);
@@ -250,7 +250,48 @@ int main(int argc, char* argv[]) {
     brls::Theme::getDarkTheme().addColor("captioned_image/caption",
                                   nvgRGB(51, 186, 227));
 
+    // New UI palette (dark with a teal accent). It replaces the stock colors
+    // of both variants so the app looks the same whatever the system theme is.
+    for (brls::Theme* theme : {&brls::Theme::getLightTheme(), &brls::Theme::getDarkTheme()}) {
+        const NVGcolor accent = nvgRGB(46, 230, 193);
+        const NVGcolor surface = nvgRGB(29, 33, 40);
+        const NVGcolor raised = nvgRGB(38, 45, 56);
+        const NVGcolor line = nvgRGB(47, 54, 65);
+        const NVGcolor muted = nvgRGB(170, 179, 191);
+
+        theme->addColor("brls/background", nvgRGB(20, 23, 28));
+        theme->addColor("brls/text", nvgRGB(238, 241, 244));
+        theme->addColor("brls/text_disabled", nvgRGB(110, 118, 130));
+        theme->addColor("brls/accent", accent);
+        theme->addColor("brls/click_pulse", nvgRGBA(46, 230, 193, 38));
+        theme->addColor("brls/highlight/background", raised);
+        theme->addColor("brls/highlight/color1", accent);
+        theme->addColor("brls/highlight/color2", accent);
+        theme->addColor("brls/sidebar/background", surface);
+        theme->addColor("brls/sidebar/active_item", accent);
+        theme->addColor("brls/sidebar/separator", line);
+        theme->addColor("brls/header/border", line);
+        theme->addColor("brls/header/rectangle", muted);
+        theme->addColor("brls/header/subtitle", muted);
+        theme->addColor("brls/list/listItem_value_color", accent);
+        theme->addColor("brls/slider/line_filled", accent);
+        theme->addColor("brls/slider/line_empty", nvgRGB(58, 66, 78));
+        theme->addColor("brls/slider/pointer_color", nvgRGB(255, 255, 255));
+        theme->addColor("brls/slider/pointer_border_color", accent);
+        theme->addColor("brls/button/primary_enabled_background", accent);
+        theme->addColor("brls/button/primary_enabled_text", nvgRGB(4, 32, 26));
+        theme->addColor("brls/button/highlight_enabled_text", accent);
+        theme->addColor("brls/button/highlight_disabled_text", accent);
+
+        theme->addColor("artemis/card", surface);
+        theme->addColor("artemis/card_line", line);
+        theme->addColor("artemis/muted", muted);
+        theme->addColor("artemis/on_accent", nvgRGB(4, 32, 26));
+    }
+
     // Add custom values to the style
+    brls::getStyle().addMetric("brls/highlight/stroke_width", 4);
+    brls::getStyle().addMetric("brls/highlight/corner_radius", 16);
     brls::getStyle().addMetric("about/padding_top_bottom", 50);
     brls::getStyle().addMetric("about/padding_sides", 75);
     brls::getStyle().addMetric("about/description_margin", 50);

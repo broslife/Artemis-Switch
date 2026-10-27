@@ -73,7 +73,22 @@
         "on": "Ligado",
         "submit": "Done"
     },
+    "favorites": {
+        "games": "{} jogos"
+    },
+    "games": {
+        "close": "Encerrar",
+        "start": "Iniciar",
+        "resume": "Continuar",
+        "favorite": "Favorito"
+    },
+    "home": {
+        "title": "Escolha onde jogar",
+        "subtitle": "{} PCs encontrados",
+        "empty": "Nenhum PC ainda. Adicione um para começar."
+    },
     "host": {
+        "options": "Opções do host",
         "connect": "Conectar",
         "fetching": "Buscando...",
         "ready": "Pronto",
@@ -127,6 +142,15 @@
         "title": "Modo mouse"
     },
     "settings": {
+        "sections": {
+            "video": "Vídeo",
+            "audio": "Áudio",
+            "host": "Host e stream",
+            "controls": "Controles",
+            "overlay": "Overlay no jogo",
+            "input": "Entrada",
+            "advanced": "Avançado e depuração"
+        },
         "audio_backend": "Audio driver",
         "av1": "AV1 (Experimental)",
         "buttons": {

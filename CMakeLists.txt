@@ -379,6 +379,11 @@ if (PLATFORM_SWITCH)
     list(REMOVE_ITEM MAIN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/app/src/streaming/audio/SDLAudioRenderer.cpp)
 endif ()
 
+# Remote-access routing is Switch-only; other platforms dial addresses directly.
+if (NOT PLATFORM_SWITCH)
+    list(APPEND MAIN_SRC app/src/remote_access/DesktopRouteStubs.cpp)
+endif ()
+
 set(PLATFORM_OPTION)
 if (PLATFORM_DESKTOP)
     if (WIN32)
@@ -855,6 +860,7 @@ endif ()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         app/include
+        app/src
         app/include/gestures
         app/src/crypto
         app/src/gestures

@@ -73,7 +73,22 @@
         "on": "켬",
         "submit": "완료"
     },
+    "favorites": {
+        "games": "{} games"
+    },
+    "games": {
+        "close": "Close",
+        "start": "Start",
+        "resume": "Resume",
+        "favorite": "Favorite"
+    },
+    "home": {
+        "title": "Choose where to play",
+        "subtitle": "{} PCs found",
+        "empty": "No PCs yet. Add one to start streaming."
+    },
     "host": {
+        "options": "Host options",
         "connect": "연결",
         "fetching": "가져오는 중...",
         "ready": "준비",
@@ -127,6 +142,15 @@
         "title": "마우스 입력 모드"
     },
     "settings": {
+        "sections": {
+            "video": "Video",
+            "audio": "Audio",
+            "host": "Host and stream",
+            "controls": "Controls",
+            "overlay": "In-game overlay",
+            "input": "Input",
+            "advanced": "Advanced and debug"
+        },
         "audio_backend": "오디오 드라이버",
         "av1": "AV1 (실험용)",
         "buttons": {

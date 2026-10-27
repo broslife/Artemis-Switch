@@ -1,68 +1,72 @@
-<brls:Box
-    width="100%"
-    height="auto"
-    axis="column"
-    alignItems="stretch">
-    <brls:Header
-        title="@i18n/artemis/settings/title"
-        paddingTop="60"
-        lineTop="1px"/>
-    <brls:BooleanCell id="custom_resolution"/>
-    <brls:DetailCell id="custom_width"/>
-    <brls:DetailCell id="custom_height"/>
-
-    <brls:Header title="@i18n/artemis/settings/frame_rate_video" paddingTop="60" lineTop="1px"/>
-    <brls:BooleanCell id="force_full_range"/>
-    <brls:BooleanCell id="prevent_packet_loss"/>
-    <brls:BooleanCell id="low_latency_pacing"/>
-    <brls:BooleanCell id="cadence_pacing"/>
-    <brls:SelectorCell id="frames_queue_size"/>
-    <brls:SelectorCell id="packet_size"/>
-
-    <brls:Header title="@i18n/artemis/settings/presentation" paddingTop="60" lineTop="1px"/>
-    <brls:SelectorCell id="scale_mode"/>
-    <brls:Header id="mouse_speed_header" paddingTop="24" title="@i18n/settings/mouse_speed"/>
-    <brls:Slider id="mouse_speed_slider" width="auto" height="84" grow="1"/>
-    <brls:Header id="zoom_header" paddingTop="24" title="@i18n/artemis/overlay/zoom"/>
-    <brls:Slider id="zoom_slider" width="auto" height="84" grow="1"/>
-    <brls:Header id="pan_x_header" paddingTop="24" title="@i18n/artemis/overlay/pan_x"/>
-    <brls:Slider id="pan_x_slider" width="auto" height="84" grow="1"/>
-    <brls:Header id="pan_y_header" paddingTop="24" title="@i18n/artemis/overlay/pan_y"/>
-    <brls:Slider id="pan_y_slider" width="auto" height="84" grow="1"/>
-    <brls:BooleanCell id="remember_zoom_pan"/>
-    <brls:DetailCell id="reset_zoom_pan"/>
-
-    <brls:Header title="@i18n/artemis/settings/switch_motion" paddingTop="60" lineTop="1px"/>
-    <brls:BooleanCell id="forward_motion"/>
-    <brls:BooleanCell id="console_motion_fallback"/>
-
-    <brls:Header title="@i18n/settings/remote_access" paddingTop="60" lineTop="1px"/>
-    <brls:SelectorCell id="remote_access_provider"/>
-    <brls:DetailCell id="wireguard_config_path"/>
-    <brls:DetailCell id="netbird_server"/>
-    <brls:DetailCell id="netbird_setup_key"/>
-    <brls:DetailCell id="tailscale_auth_key_path"/>
-    <brls:BooleanCell id="tailscale_direct_connections"/>
-    <brls:BooleanCell id="remote_access_prefer_lan"/>
-    <brls:BooleanCell id="remote_access_auto_connect"/>
-    <brls:DetailCell id="remote_access_action"/>
-
-    <brls:Header id="remote_access_status_header" title="@i18n/settings/remote_access_status" paddingTop="24"/>
-    <brls:DetailCell id="wireguard_status"/>
-    <brls:DetailCell id="remote_access_address"/>
-    <brls:DetailCell id="remote_access_peers"/>
-    <brls:DetailCell id="remote_access_error"/>
-    <brls:DetailCell id="wireguard_backend_status"/>
-    <brls:DetailCell id="netbird_backend_status"/>
-    <brls:DetailCell id="tailscale_backend_status"/>
-
-    <brls:Header title="@i18n/artemis/settings/notes" paddingTop="60" lineTop="1px"/>
-    <brls:Label
-        text="@i18n/artemis/settings/notes_text"
-        width="100%"
-        height="auto"
-        fontSize="16"
-        lineHeight="1.25"
-        marginTop="16"
-        marginBottom="24"/>
+<brls:Box width="100%" height="auto" axis="column" alignItems="stretch">
+    <brls:Box id="grp_custom_res" axis="column" alignItems="stretch" marginBottom="28">
+        <brls:Header title="@i18n/artemis/settings/title"/>
+        <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+            <brls:BooleanCell id="custom_resolution"/>
+            <brls:DetailCell id="custom_width"/>
+            <brls:DetailCell id="custom_height"/>
+        </brls:Box>
+    </brls:Box>
+    <brls:Box id="grp_frame" axis="column" alignItems="stretch" marginBottom="28">
+        <brls:Header title="@i18n/artemis/settings/frame_rate_video"/>
+        <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+            <brls:BooleanCell id="force_full_range"/>
+            <brls:BooleanCell id="prevent_packet_loss"/>
+            <brls:BooleanCell id="low_latency_pacing"/>
+            <brls:BooleanCell id="cadence_pacing"/>
+            <brls:SelectorCell id="frames_queue_size"/>
+            <brls:SelectorCell id="packet_size"/>
+        </brls:Box>
+    </brls:Box>
+    <brls:Box id="grp_presentation" axis="column" alignItems="stretch" marginBottom="28">
+        <brls:Header title="@i18n/artemis/settings/presentation"/>
+        <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+            <brls:SelectorCell id="scale_mode"/>
+            <brls:Header id="mouse_speed_header" paddingTop="24" title="@i18n/settings/mouse_speed"/>
+            <brls:Slider id="mouse_speed_slider" width="auto" height="84" grow="1"/>
+            <brls:Header id="zoom_header" paddingTop="24" title="@i18n/artemis/overlay/zoom"/>
+            <brls:Slider id="zoom_slider" width="auto" height="84" grow="1"/>
+            <brls:Header id="pan_x_header" paddingTop="24" title="@i18n/artemis/overlay/pan_x"/>
+            <brls:Slider id="pan_x_slider" width="auto" height="84" grow="1"/>
+            <brls:Header id="pan_y_header" paddingTop="24" title="@i18n/artemis/overlay/pan_y"/>
+            <brls:Slider id="pan_y_slider" width="auto" height="84" grow="1"/>
+            <brls:BooleanCell id="remember_zoom_pan"/>
+            <brls:DetailCell id="reset_zoom_pan"/>
+        </brls:Box>
+    </brls:Box>
+    <brls:Box id="grp_motion" axis="column" alignItems="stretch" marginBottom="28">
+        <brls:Header title="@i18n/artemis/settings/switch_motion"/>
+        <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+            <brls:BooleanCell id="forward_motion"/>
+            <brls:BooleanCell id="console_motion_fallback"/>
+        </brls:Box>
+    </brls:Box>
+    <brls:Box id="grp_remote_access" axis="column" alignItems="stretch" marginBottom="28">
+        <brls:Header title="@i18n/settings/remote_access"/>
+        <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+            <brls:SelectorCell id="remote_access_provider"/>
+            <brls:DetailCell id="wireguard_config_path"/>
+            <brls:DetailCell id="netbird_server"/>
+            <brls:DetailCell id="netbird_setup_key"/>
+            <brls:DetailCell id="tailscale_auth_key_path"/>
+            <brls:BooleanCell id="tailscale_direct_connections"/>
+            <brls:BooleanCell id="remote_access_prefer_lan"/>
+            <brls:BooleanCell id="remote_access_auto_connect"/>
+            <brls:DetailCell id="remote_access_action"/>
+            <brls:Header id="remote_access_status_header" title="@i18n/settings/remote_access_status" paddingTop="24"/>
+            <brls:DetailCell id="wireguard_status"/>
+            <brls:DetailCell id="remote_access_address"/>
+            <brls:DetailCell id="remote_access_peers"/>
+            <brls:DetailCell id="remote_access_error"/>
+            <brls:DetailCell id="wireguard_backend_status"/>
+            <brls:DetailCell id="netbird_backend_status"/>
+            <brls:DetailCell id="tailscale_backend_status"/>
+        </brls:Box>
+    </brls:Box>
+    <brls:Box id="grp_notes" axis="column" alignItems="stretch" marginBottom="28">
+        <brls:Header title="@i18n/artemis/settings/notes"/>
+        <brls:Box axis="column" alignItems="stretch" backgroundColor="@theme/artemis/card" borderColor="@theme/artemis/card_line" borderThickness="1" cornerRadius="20">
+            <brls:Label text="@i18n/artemis/settings/notes_text" width="100%" height="auto" fontSize="16" lineHeight="1.25" marginTop="16" marginBottom="24"/>
+        </brls:Box>
+    </brls:Box>
 </brls:Box>

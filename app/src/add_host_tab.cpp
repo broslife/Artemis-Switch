@@ -27,8 +27,11 @@ artemis::remote::ProbeCache& peerProbeCache() {
 #include "DiscoverManager.hpp"
 #include "NetBirdManager.hpp"
 #include "helper.hpp"
-#include "main_tabs_view.hpp"
+#include "home_screen.hpp"
 #include "features/host/HostAddressParse.hpp"
+
+using namespace brls;
+using namespace brls::literals;
 
 #if defined(PLATFORM_IOS) || defined(PLATFORM_TVOS) || defined(PLATFORM_VISIONOS)
 extern void darwin_mdns_start(ServerCallback<std::vector<Host>>& callback);
@@ -554,7 +557,7 @@ void AddHostTab::connectHost(const Host& host) {
                     if (result.value().paired) {
                         showAlert("add_host/paired_error"_i18n, [pairedHost] {
                             savePairedHost(pairedHost);
-                            MainTabs::getInstanse()->refillTabs();
+                            HomeScreen::instance()->refreshHosts();
                         });
 
                         return;
@@ -588,7 +591,7 @@ void AddHostTab::connectHost(const Host& host) {
                             const auto finish = [result, pairedHost] {
                                 if (result.isSuccess()) {
                                     savePairedHost(pairedHost);
-                                    MainTabs::getInstanse()->refillTabs();
+                                    HomeScreen::instance()->refreshHosts();
                                     AddHostTab::startSearching();
                                 } else {
                                     showError(result.error(), [] {
