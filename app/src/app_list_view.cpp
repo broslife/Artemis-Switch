@@ -135,7 +135,6 @@ AppListView::AppListView(const Host& host) : Box(Axis::COLUMN), host(host) {
         toggleViewMode();
         return true;
     });
-    right->addView(viewSwitch);
 
     auto* yBadge = new Box(Axis::ROW);
     yBadge->setPadding(2, 10, 2, 10);
@@ -148,7 +147,6 @@ AppListView::AppListView(const Host& host) : Box(Axis::COLUMN), host(host) {
     yLabel->setFontSize(20);
     yLabel->setTextColor(theme["artemis/muted"]);
     yBadge->addView(yLabel);
-    right->addView(yBadge);
 
     hostSettingsButton = new Box(Axis::ROW);
     hostSettingsButton->setWidth(56);
@@ -160,7 +158,7 @@ AppListView::AppListView(const Host& host) : Box(Axis::COLUMN), host(host) {
     hostSettingsButton->setBorderThickness(2);
     hostSettingsButton->setJustifyContent(JustifyContent::CENTER);
     hostSettingsButton->setAlignItems(AlignItems::CENTER);
-    hostSettingsButton->setMarginLeft(24);
+    hostSettingsButton->setMarginRight(24);
     hostSettingsButton->setFocusable(true);
     hostSettingsButton->addView(new GlyphView("", 32, theme["brls/text"]));
     hostSettingsButton->addGestureRecognizer(
@@ -170,6 +168,8 @@ AppListView::AppListView(const Host& host) : Box(Axis::COLUMN), host(host) {
         return true;
     });
     right->addView(hostSettingsButton);
+    right->addView(viewSwitch);
+    right->addView(yBadge);
     header->addView(right);
     addView(header);
 
@@ -468,7 +468,8 @@ AppListView::AppListView(const Host& host) : Box(Axis::COLUMN), host(host) {
 
     addView(hostContainer);
 
-    // B in the Host settings pane goes back to the games.
+    // Host settings pane: its actions live on the pane, so their hints show
+    // only while it is open. B goes back to the games.
     hostContainer->registerAction(
         "hints/back"_i18n, BUTTON_B,
         [this](View*) {
@@ -476,64 +477,26 @@ AppListView::AppListView(const Host& host) : Box(Axis::COLUMN), host(host) {
             return true;
         },
         false, false, SOUND_BACK);
-
-    // LB searches the games (shown in the footer); RB refreshes the list
-    // without a footer hint.
-    registerAction("app_list/search"_i18n, BUTTON_LB, [this](View*) {
-        if (activePane != Pane::Applications)
-            return false;
-        promptAppSearch();
+    hostContainer->registerAction("host/edit_profile"_i18n, BUTTON_Y,
+                                  [this](View*) {
+        const auto selected =
+            artemis::streaming::StreamConfigProfileStore::instance()
+                .selectedForHost(hostProfileKey);
+        brls::sync([this, selected] {
+            if (selected.empty()) {
+                artemis::streaming::openProfileEditor(
+                    {}, hostProfileKey,
+                    [this] { refreshStreamProfileLabel(); });
+            } else {
+                artemis::streaming::openProfileEditor(
+                    selected, hostProfileKey,
+                    [this] { refreshStreamProfileLabel(); });
+            }
+        });
         return true;
     });
-    appsContainer->registerAction(
-        "app_list/reload_app_list"_i18n, BUTTON_RB,
-        [this](View*) {
-            updateAppList();
-            return true;
-        },
-        true);
-
-    loader = new LoadingOverlay(this);
-
-    // Shown in the footer only while an app is running on the host.
-    registerAction("app_list/terminate_current_app"_i18n,
-                   brls::ControllerButton::BUTTON_BACK, [this](View*) {
-                       if (currentApp.has_value())
-                           this->terninateApp();
-                       return true;
-                   });
-    setActionAvailable(brls::ControllerButton::BUTTON_BACK, false);
-
-    registerAction("tabs/settings"_i18n, BUTTON_START, [](View*) {
-        SettingsScreen::open();
-        return true;
-    });
-
-    // Y: switch carousel/grid in the games pane, edit the profile in Host.
-    registerAction("games/view_grid"_i18n, BUTTON_Y, [this](View*) {
-        if (activePane == Pane::Host) {
-            const auto selected =
-                artemis::streaming::StreamConfigProfileStore::instance()
-                    .selectedForHost(hostProfileKey);
-            brls::sync([this, selected] {
-                if (selected.empty()) {
-                    artemis::streaming::openProfileEditor(
-                        {}, hostProfileKey,
-                        [this] { refreshStreamProfileLabel(); });
-                } else {
-                    artemis::streaming::openProfileEditor(
-                        selected, hostProfileKey,
-                        [this] { refreshStreamProfileLabel(); });
-                }
-            });
-            return true;
-        }
-        toggleViewMode();
-        return true;
-    });
-    registerAction("host/delete_profile"_i18n, BUTTON_X, [this](View*) {
-        if (activePane != Pane::Host)
-            return false;
+    hostContainer->registerAction("host/delete_profile"_i18n, BUTTON_X,
+                                  [this](View*) {
         const auto selected =
             artemis::streaming::StreamConfigProfileStore::instance()
                 .selectedForHost(hostProfileKey);
@@ -555,15 +518,53 @@ AppListView::AppListView(const Host& host) : Box(Axis::COLUMN), host(host) {
         });
         return true;
     });
-    registerAction("host/new_profile"_i18n, BUTTON_RB, [this](View*) {
-        if (activePane != Pane::Host)
-            return false;
-        showPane(Pane::Host, true);
+    hostContainer->registerAction("host/new_profile"_i18n, BUTTON_RB,
+                                  [this](View*) {
         artemis::streaming::open_create_host_profile(
             hostProfileKey, [this] { refreshStreamProfileLabel(); });
         return true;
     });
-    // Applications is the default pane; Host-only hints are hidden until it opens.
+
+    // Shortcuts without a footer hint (the header already shows Y; + opens
+    // Settings; RB refreshes the games). LB search is added by showPane.
+    registerAction(
+        "tabs/settings"_i18n, BUTTON_START,
+        [](View*) {
+            SettingsScreen::open();
+            return true;
+        },
+        true);
+    registerAction(
+        "", BUTTON_Y,
+        [this](View*) {
+            if (activePane == Pane::Host)
+                return false;
+            toggleViewMode();
+            return true;
+        },
+        true);
+    appsContainer->registerAction(
+        "app_list/reload_app_list"_i18n, BUTTON_RB,
+        [this](View*) {
+            updateAppList();
+            return true;
+        },
+        true);
+
+    loader = new LoadingOverlay(this);
+
+    // Close the running app from the header too; the footer hint "Close" is
+    // on the game tiles while an app runs.
+    registerAction(
+        "games/close"_i18n, brls::ControllerButton::BUTTON_BACK,
+        [this](View*) {
+            if (currentApp.has_value())
+                this->terninateApp();
+            return true;
+        },
+        true);
+    setActionAvailable(brls::ControllerButton::BUTTON_BACK, false);
+
     refreshAppSearchLabel();
     applyViewMode();
     showPane(Pane::Applications, false);
@@ -576,12 +577,18 @@ void AppListView::showPane(Pane pane, bool focusContent) {
     appsContainer->setVisibility(apps ? Visibility::VISIBLE : Visibility::GONE);
     hostContainer->setVisibility(apps ? Visibility::GONE : Visibility::VISIBLE);
 
-    setActionAvailable(BUTTON_Y, true);
-    setActionAvailable(BUTTON_X, !apps);
-    setActionAvailable(BUTTON_RB, !apps);
-    setActionAvailable(BUTTON_LB, apps);
-    updateActionHint(BUTTON_X, "host/delete_profile"_i18n);
-    updateActionHint(BUTTON_RB, "host/new_profile"_i18n);
+    // A hint of an action that is registered always shows (greyed when it is
+    // unavailable), so LB exists only while the games pane is open.
+    if (apps && !searchAction) {
+        searchAction = registerAction(
+            "app_list/search"_i18n, BUTTON_LB, [this](View*) {
+                promptAppSearch();
+                return true;
+            });
+    } else if (!apps && searchAction) {
+        unregisterAction(*searchAction);
+        searchAction.reset();
+    }
     applyViewMode();
 
     if (!focusContent)
@@ -621,13 +628,6 @@ void AppListView::applyViewMode() {
                                               : theme["artemis/muted"]);
     gridSwitchIcon->setColor(carouselMode ? theme["artemis/muted"]
                                           : nvgRGB(20, 23, 28));
-
-    // Y names the view it switches to; in the Host pane it edits the profile.
-    if (activePane == Pane::Host)
-        updateActionHint(BUTTON_Y, "host/edit_profile"_i18n);
-    else
-        updateActionHint(BUTTON_Y, carouselMode ? "games/view_grid"_i18n
-                                                : "games/view_carousel"_i18n);
 }
 
 void AppListView::toggleViewMode() {
@@ -1030,6 +1030,15 @@ void AppListView::rebuildAppGrid() {
             gridView->addView(tile);
         }
         shownApps.push_back(app);
+        if (cachedCurrentGame != 0) {
+            // Registered before the favorite action so it is the leftmost hint.
+            tile->registerAction("games/close"_i18n, BUTTON_BACK,
+                                 [this](View*) {
+                                     if (currentApp.has_value())
+                                         this->terninateApp();
+                                     return true;
+                                 });
+        }
         updateFavoriteAction(tile, host, app);
         ++displayedAppCount;
     }

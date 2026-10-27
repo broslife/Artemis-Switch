@@ -19,6 +19,8 @@ class SettingsScreen : public brls::Box {
   public:
     SettingsScreen();
 
+    void willAppear(bool resetState) override;
+
     static brls::View* create();
     // Opens Settings as a full screen on top of the current one.
     static void open();

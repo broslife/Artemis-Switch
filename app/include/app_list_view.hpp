@@ -71,6 +71,7 @@ class AppListView : public Box {
     Box* hostContainer = nullptr;
 
     Pane activePane = Pane::Applications;
+    std::optional<ActionIdentifier> searchAction;
     ViewMode viewMode = ViewMode::Carousel;
     std::optional<AppInfo> currentApp;
     AppInfoList cachedApps;

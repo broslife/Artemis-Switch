@@ -6,6 +6,7 @@
 #include "settings_screen.hpp"
 #include "about_tab.hpp"
 #include "settings_tab.hpp"
+#include "views/footer_status.hpp"
 #include "views/glyph_view.hpp"
 #include "views/settings_icon_button.hpp"
 
@@ -117,6 +118,11 @@ SettingsScreen::SettingsScreen() {
     }
 
     selectSection(0);
+}
+
+void SettingsScreen::willAppear(bool resetState) {
+    Box::willAppear(resetState);
+    artemis::ui::hideFooterStatus(this);
 }
 
 void SettingsScreen::selectSection(size_t index) {

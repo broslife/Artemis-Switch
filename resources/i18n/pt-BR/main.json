@@ -77,10 +77,9 @@
         "games": "{} jogos"
     },
     "games": {
+        "close": "Encerrar",
         "start": "Iniciar",
         "resume": "Continuar",
-        "view_grid": "Grade",
-        "view_carousel": "Carrossel",
         "favorite": "Favorito"
     },
     "home": {
