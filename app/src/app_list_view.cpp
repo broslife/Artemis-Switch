@@ -477,14 +477,14 @@ AppListView::AppListView(const Host& host) : Box(Axis::COLUMN), host(host) {
         },
         false, false, SOUND_BACK);
 
-    // Shortcuts of the games pane that are not shown in the footer.
-    appsContainer->registerAction(
-        "app_list/search"_i18n, BUTTON_LB,
-        [this](View*) {
-            promptAppSearch();
-            return true;
-        },
-        true);
+    // LB searches the games (shown in the footer); RB refreshes the list
+    // without a footer hint.
+    registerAction("app_list/search"_i18n, BUTTON_LB, [this](View*) {
+        if (activePane != Pane::Applications)
+            return false;
+        promptAppSearch();
+        return true;
+    });
     appsContainer->registerAction(
         "app_list/reload_app_list"_i18n, BUTTON_RB,
         [this](View*) {
@@ -579,6 +579,7 @@ void AppListView::showPane(Pane pane, bool focusContent) {
     setActionAvailable(BUTTON_Y, true);
     setActionAvailable(BUTTON_X, !apps);
     setActionAvailable(BUTTON_RB, !apps);
+    setActionAvailable(BUTTON_LB, apps);
     updateActionHint(BUTTON_X, "host/delete_profile"_i18n);
     updateActionHint(BUTTON_RB, "host/new_profile"_i18n);
     applyViewMode();
