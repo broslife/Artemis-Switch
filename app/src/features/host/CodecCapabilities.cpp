@@ -5,8 +5,8 @@ namespace artemis::host {
 // ServerCodecModeSupport bit values, kept in sync with Limelight.h SCM_*
 // (scoped here so the module needs no Moonlight header to build standalone).
 namespace {
-[[maybe_unused]] constexpr std::uint32_t kScmH264 = 0x00000001;
-[[maybe_unused]] constexpr std::uint32_t kScmH264High8 = 0x00040000;
+constexpr std::uint32_t kScmH264 = 0x00000001;
+constexpr std::uint32_t kScmH264High8 = 0x00040000;
 constexpr std::uint32_t kScmHevc = 0x00000100;
 constexpr std::uint32_t kScmHevcMain10 = 0x00000200;
 constexpr std::uint32_t kScmHevcRext8 = 0x00080000;
@@ -16,12 +16,12 @@ constexpr std::uint32_t kScmAv1Main10 = 0x00020000;
 constexpr std::uint32_t kScmAv1High8 = 0x00200000;
 constexpr std::uint32_t kScmAv1High10 = 0x00400000;
 
-[[maybe_unused]] constexpr std::uint32_t kMaskHevc =
+constexpr std::uint32_t kMaskHevc =
     kScmHevc | kScmHevcMain10 | kScmHevcRext8 | kScmHevcRext10;
-[[maybe_unused]] constexpr std::uint32_t kMaskHevc10 = kScmHevcMain10 | kScmHevcRext10;
-[[maybe_unused]] constexpr std::uint32_t kMaskAv1 =
+constexpr std::uint32_t kMaskHevc10 = kScmHevcMain10 | kScmHevcRext10;
+constexpr std::uint32_t kMaskAv1 =
     kScmAv1Main8 | kScmAv1Main10 | kScmAv1High8 | kScmAv1High10;
-[[maybe_unused]] constexpr std::uint32_t kMaskAv110 = kScmAv1Main10 | kScmAv1High10;
+constexpr std::uint32_t kMaskAv110 = kScmAv1Main10 | kScmAv1High10;
 } // namespace
 
 CodecCapabilities decodeServerCodecMask(std::uint32_t mask) {
