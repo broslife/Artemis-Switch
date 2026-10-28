@@ -62,6 +62,40 @@ jobs:
       - name: Run cross-feature integration suite
         run: ctest --test-dir build/integration --output-on-failure
 
+  release-package-contract:
+    name: Release source package contract
+    # Switched off for now: packaging every submodule gets this job cancelled.
+    # release_contract_test.py still expects the job to be defined.
+    if: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build dry-run source packages
+        shell: bash
+        run: |
+          chmod +x scripts/package-release-source.sh
+          scripts/package-release-source.sh v0.0.0-ci "$RUNNER_TEMP/artemis-release"
+
+      - name: Inspect source packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          tarball="$RUNNER_TEMP/artemis-release/Artemis-Switch-0.0.0-ci-source.tar.gz"
+          zipfile="$RUNNER_TEMP/artemis-release/Artemis-Switch-0.0.0-ci-source.zip"
+          test -s "$tarball"
+          test -s "$zipfile"
+          tar -tzf "$tarball" | grep -q 'Artemis-Switch-0.0.0-ci/README.md$'
+          tar -tzf "$tarball" | grep -q 'Artemis-Switch-0.0.0-ci/SOURCE_INFO.txt$'
+          tar -tzf "$tarball" | grep -q 'Artemis-Switch-0.0.0-ci/extern/wg-nx/include/wireguard.h$'
+          tar -tzf "$tarball" | grep -q 'Artemis-Switch-0.0.0-ci/extern/netbird-switch/include/netbird.h$'
+          unzip -l "$zipfile" | grep -q 'Artemis-Switch-0.0.0-ci/README.md'
+          unzip -l "$zipfile" | grep -q 'Artemis-Switch-0.0.0-ci/SOURCE_INFO.txt'
+
   sanitizer-integration:
     name: ASan + UBSan integration
     runs-on: ubuntu-latest

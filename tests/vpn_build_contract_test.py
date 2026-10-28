@@ -73,9 +73,7 @@ def main():
     assert f"Capability {accepted} accepted" in compatibility["release_gate"]
     # Direct UDP paths stay opt-in until proven on more networks.
     assert "off by default" in compatibility["release_gate"]
-    overlap = set(compatibility["implemented_primitives"]) & set(
-        compatibility["not_implemented"]
-    )
+    overlap = set(compatibility["implemented_primitives"]) & set(compatibility["not_implemented"])
     assert not overlap, f"listed as both implemented and not: {overlap}"
 
     for required in [
