@@ -1,19 +1,13 @@
 name: All Builds
 
 on:
-  # This workflow fans out to six reusable cross-platform builds, so every
-  # trigger is expensive and it is kept off the routine path.
+  # This workflow fans out to cross-platform builds, so every trigger is
+  # expensive. It runs by hand (workflow_dispatch) or for release tags; pull
+  # requests are covered by the lighter lint and test workflows.
   #
-  # Pull requests are the gate: branches are validated before they land. There
-  # is deliberately no push trigger for main -- PRs are rebase-merged, so the
-  # exact commits have already been built here and a main build would only
-  # repeat that work.
-  #
-  # Release tags do build the full matrix. release.yml covers the shipping
+  # Release tags do build the whole matrix. release.yml covers the shipping
   # Switch NRO only, so this is where the other platforms get verified before
-  # a version goes out.
-  pull_request:
-    branches: [ main ]
+  # a version goes out. PS Vita and macOS are not built by this fork.
   push:
     tags:
       - 'v*'
@@ -31,14 +25,6 @@ jobs:
   switch:
     name: Nintendo Switch
     uses: ./.github/workflows/docker-image.yml
-
-  psvita:
-    name: PS Vita
-    uses: ./.github/workflows/psvita.yml
-
-  macos:
-    name: macOS
-    uses: ./.github/workflows/macos.yml
 
   windows:
     name: Windows
