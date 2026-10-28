@@ -89,6 +89,10 @@ public:
         float clientPipelineMeanMs = 0.0f;
         float clientPipelineMaxMs = 0.0f;
         uint32_t frames = 0;
+        // Previous UI frame presented to the start of the next video draw.
+        float imageWaitMeanMs = 0.0f;
+        float imageWaitMaxMs = 0.0f;
+        uint32_t imageWaitFrames = 0;
     };
 
     LatencyWindow takeLatencyWindow() {
@@ -105,10 +109,41 @@ public:
             w.clientPipelineMaxMs = static_cast<float>(m_.windowClientPipeMax);
         }
         w.frames = m_.windowClientPipeN;
+        if (m_.windowImageWaitN > 0) {
+            w.imageWaitMeanMs = static_cast<float>(
+                m_.windowImageWaitSum / m_.windowImageWaitN);
+            w.imageWaitMaxMs = static_cast<float>(m_.windowImageWaitMax);
+        }
+        w.imageWaitFrames = m_.windowImageWaitN;
+        m_.windowImageWaitSum = m_.windowImageWaitMax = 0.0;
+        m_.windowImageWaitN = 0;
         m_.windowQueueWaitSum = m_.windowQueueWaitMax = 0.0;
         m_.windowClientPipeSum = m_.windowClientPipeMax = 0.0;
         m_.windowQueueWaitN = m_.windowClientPipeN = 0;
         return w;
+    }
+
+    // End of a UI frame, after the swapchain present (Borealis run loop).
+    void noteUiFramePresented(clock::time_point at) {
+        std::lock_guard lock(m_mutex);
+        m_.lastUiFramePresentedAt = at;
+        m_.hasLastUiFramePresented = true;
+    }
+
+    // Start of a video draw. The time since the previous UI frame was
+    // presented is mostly the wait for a free swapchain image (step 4c).
+    void noteVideoDrawStart(clock::time_point at) {
+        std::lock_guard lock(m_mutex);
+        if (!m_.hasLastUiFramePresented)
+            return;
+        m_.hasLastUiFramePresented = false;
+        const double waitMs = msBetween(m_.lastUiFramePresentedAt, at);
+        // A gap over 250 ms is a pause (menu, suspend), not a frame wait.
+        if (std::isfinite(waitMs) && waitMs >= 0.0 && waitMs < 250.0) {
+            m_.windowImageWaitSum += waitMs;
+            m_.windowImageWaitMax = std::max(m_.windowImageWaitMax, waitMs);
+            m_.windowImageWaitN++;
+        }
     }
 
     void noteFrameQueued(clock::time_point queuedAt) {
@@ -255,6 +290,11 @@ private:
         double windowClientPipeSum = 0.0;
         double windowClientPipeMax = 0.0;
         uint32_t windowClientPipeN = 0;
+        bool hasLastUiFramePresented = false;
+        clock::time_point lastUiFramePresentedAt{};
+        double windowImageWaitSum = 0.0;
+        double windowImageWaitMax = 0.0;
+        uint32_t windowImageWaitN = 0;
 
         bool hasPendingTiming = false;
         clock::time_point pendingNetworkComplete{};

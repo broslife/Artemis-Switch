@@ -129,6 +129,10 @@ static std::string buildHeader(const SessionLogConfig& cfg,
               ? "cadence"
               : (cfg.lowLatencyPacing ? "low-latency" : "legacy"))
       << "  QueueSize: " << cfg.queueSize << "\n"
+      << "# Swapchain images: "
+      << (cfg.swapchainImages > 0 ? std::to_string(cfg.swapchainImages)
+                                  : std::string("unknown"))
+      << "\n"
       << "# Switch: " << meta.operationMode << "\n"
       << "# File: " << logPath << "\n"
       << "#\n"
@@ -139,7 +143,8 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << "  pts_mean_ms  pts_max_ms  pts_std_ms"
       << "  judder_permille  n0  n1  n2  n3plus  shown"
       << "  netdrops/s  late/s  reanchors/s  cushion_ms"
-      << "  qwait_ms  qwait_max  cpipe_ms  cpipe_max\n"
+      << "  qwait_ms  qwait_max  cpipe_ms  cpipe_max"
+      << "  imgwait_ms  imgwait_max\n"
       << "# n0..n3plus = display slots between two new frames (0, 1, 2, 3+);"
       << " judder_permille = share outside the bucket expected for the stream"
       << " fps (n1 at 60 fps); shown = new frames put on screen that second.\n"
@@ -149,13 +154,18 @@ static std::string buildHeader(const SessionLogConfig& cfg,
       << " qwait = decode done to chosen for display; cpipe = packet fully"
       << " received to submitted for display. Host and network transit are"
       << " not included.\n"
+      << "# imgwait = previous UI frame presented to start of the next video"
+      << " draw (ms, mean and max): mostly the wait for a free swapchain image,"
+      << " plus input handling. Near a full frame period means the loop is held"
+      << " by a full swapchain queue.\n"
       << "sec\trfps\trcv_fps\tdec_fps"
       << "\tuflows\tskips\toflows\tpskips\tholds"
       << "\tqdepth\trcv_ms\tdec_ms"
       << "\tpts_mean\tpts_max\tpts_std"
       << "\tjudder\tn0\tn1\tn2\tn3plus\tshown"
       << "\tnetdrops\tlate\treanchors\tcushion"
-      << "\tqwait\tqwait_max\tcpipe\tcpipe_max\n";
+      << "\tqwait\tqwait_max\tcpipe\tcpipe_max"
+      << "\timgwait\timgwait_max\n";
     return h.str();
 }
 
@@ -197,6 +207,7 @@ void SessionLog::start(const SessionLogConfig& config) {
     m_qwait_series.clear();
     m_cpipe_series.clear();
     m_cpipe_max_series.clear();
+    m_imgwait_series.clear();
     // Drop anything accumulated before this session started.
     (void)artemis::streaming::FramePipelineTelemetry::instance()
         .takeLatencyWindow();
@@ -263,6 +274,7 @@ void SessionLog::stop() {
             appendSeriesSummary(m_file, "qwait_ms", m_qwait_series);
             appendSeriesSummary(m_file, "cpipe_ms", m_cpipe_series);
             appendSeriesSummary(m_file, "cpipe_max_ms", m_cpipe_max_series);
+            appendSeriesSummary(m_file, "imgwait_ms", m_imgwait_series);
             appendSeriesSummary(m_file, "rendered_fps", m_rfps_series);
             appendSeriesSummary(m_file, "rcv_fps", m_rcv_fps_series);
             appendSeriesSummary(m_file, "dec_fps", m_dec_fps_series);
@@ -361,6 +373,8 @@ void SessionLog::captureLine() {
             m_cpipe_series.push_back(lat.clientPipelineMeanMs);
             m_cpipe_max_series.push_back(lat.clientPipelineMaxMs);
         }
+        if (lat.imageWaitFrames > 0)
+            m_imgwait_series.push_back(lat.imageWaitMeanMs);
         m_judder_series.push_back(
             static_cast<float>(d_slots.judderPermille(m_expected_slots)));
         m_rfps_series.push_back(rfps);
@@ -407,6 +421,8 @@ void SessionLog::captureLine() {
          << '\t' << lat.queueWaitMaxMs
          << '\t' << lat.clientPipelineMeanMs
          << '\t' << lat.clientPipelineMaxMs
+         << '\t' << lat.imageWaitMeanMs
+         << '\t' << lat.imageWaitMaxMs
          << '\n';
 
     m_elapsed_sec++;
