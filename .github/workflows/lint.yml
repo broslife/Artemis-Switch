@@ -3,8 +3,9 @@ name: Lint
 on:
   # Topic branches are linted through pull_request; a feature/** push would
   # only duplicate that run.
-  push:
-    branches: ["main"]
+  # Runs on pull requests only: the PR already tested the code that is merged,
+  # so a second run on main would repeat it. Re-add push to main if several
+  # people merge at the same time.
   pull_request:
     branches: ["main"]
   workflow_dispatch:
