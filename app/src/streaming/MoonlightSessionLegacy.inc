@@ -9,6 +9,9 @@
 #include "borealis.hpp"
 #include "../features/host/CodecCapabilities.hpp"
 #include "benchmark/SessionLog.hpp"
+#if defined(PLATFORM_SWITCH) && defined(BOREALIS_USE_DEKO3D)
+#include <borealis/platforms/switch/switch_video.hpp>
+#endif
 #include <string.h>
 
 #if defined(PLATFORM_IOS) || defined(PLATFORM_VISIONOS)
@@ -116,6 +119,9 @@ void MoonlightSession::connection_started() {
         logCfg.lowLatencyPacing = Settings::instance().low_latency_pacing();
         logCfg.cadencePacing = Settings::instance().cadence_pacing();
         logCfg.queueSize = Settings::instance().frames_queue_size();
+#if defined(PLATFORM_SWITCH) && defined(BOREALIS_USE_DEKO3D)
+        logCfg.swapchainImages = static_cast<int>(brls::FRAMEBUFFERS_COUNT);
+#endif
         logCfg.codec = Settings::instance().video_codec() == H264
                            ? "H264"
                            : (Settings::instance().video_codec() == AV1

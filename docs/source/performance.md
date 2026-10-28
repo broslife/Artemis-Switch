@@ -92,6 +92,8 @@ Idea adapted from the [Punktfunk](https://github.com/punktfunk/punktfunk) projec
 
 Every frame shown for the first time is timed twice, and the log keeps the mean and max per second: `qwait` (decode finished until the pacer chose the frame) and `cpipe` (decode unit fully received until the frame was submitted for display). This is the client share only: network transit, the host and the display panel are not included. Use it to compare pacing modes under the same conditions.
 
+On Switch the log also records `imgwait` (mean and max per second): the time from the end of the previous screen frame (after it was handed to the display) to the start of the next video draw. It is mostly the wait for a free swapchain image, plus input handling. A value near a full frame period (about 16 ms at 60 Hz) means the draw loop is held back by a full swapchain queue, so each frame reaches the screen one refresh later than the minimum. The header line `Swapchain images` gives the number of swapchain images of that build.
+
 ## Startup timing
 
 Once per stream, telemetry records:

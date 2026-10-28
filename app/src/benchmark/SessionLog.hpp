@@ -23,6 +23,8 @@ struct SessionLogConfig {
     // Takes priority over lowLatencyPacing, as in AVFrameQueue::configure.
     bool cadencePacing = false;
     int queueSize = 3;
+    // Swapchain images on Switch/deko3d (brls::FRAMEBUFFERS_COUNT); 0 = unknown.
+    int swapchainImages = 0;
     std::string codec = "HEVC";
 };
 
@@ -96,6 +98,7 @@ private:
     std::vector<float> m_qwait_series;
     std::vector<float> m_cpipe_series;
     std::vector<float> m_cpipe_max_series;
+    std::vector<float> m_imgwait_series;
 };
 
 } // namespace artemis::benchmark

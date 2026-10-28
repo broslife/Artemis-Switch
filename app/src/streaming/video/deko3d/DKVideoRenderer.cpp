@@ -419,6 +419,21 @@ ArtemisDKVideoRenderer::~ArtemisDKVideoRenderer() = default;
 
 void ArtemisDKVideoRenderer::draw(NVGcontext* vg, int width, int height,
                                    AVFrame* frame, int imageFormat) {
+    // Step 4c: stamp the end of every UI frame (after the swapchain present)
+    // so the next video draw can measure how long the loop waited for a free
+    // swapchain image. Subscribed once on the render thread and never removed:
+    // the callback only touches the telemetry singleton.
+    static bool s_ui_frame_hook_installed = false;
+    if (!s_ui_frame_hook_installed) {
+        s_ui_frame_hook_installed = true;
+        brls::Application::getRunLoopEvent()->subscribe([] {
+            artemis::streaming::FramePipelineTelemetry::instance()
+                .noteUiFramePresented(std::chrono::steady_clock::now());
+        });
+    }
+    artemis::streaming::FramePipelineTelemetry::instance().noteVideoDrawStart(
+        std::chrono::steady_clock::now());
+
     if (!frame)
         return;
 
