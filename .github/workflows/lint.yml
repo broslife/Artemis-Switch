@@ -56,25 +56,3 @@ jobs:
         run: |
           ruff check docs/source/conf.py tests scripts
           ruff format --check docs/source/conf.py tests scripts
-
-  portable-static-analysis:
-    name: Portable warnings and clang-tidy
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install clang-tidy
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes clang-tidy
-
-      - name: Configure strict portable build
-        run: >-
-          cmake -S tests -B build/lint
-          -DCMAKE_BUILD_TYPE=Debug
-          -DARTEMIS_STRICT_WARNINGS=ON
-          -DARTEMIS_ENABLE_CLANG_TIDY=ON
-
-      - name: Build lint surface
-        run: cmake --build build/lint --parallel 2

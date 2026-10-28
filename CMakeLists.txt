@@ -782,7 +782,7 @@ elseif (PLATFORM_SWITCH)
     list(APPEND APP_PLATFORM_LIB dav1d z)
 elseif (PLATFORM_ANDROID)
     list(APPEND APP_PLATFORM_LIB android)
-    target_link_libraries(${PROJECT_NAME} PRIVATE 
+    target_link_libraries(${PROJECT_NAME} PRIVATE
     # ${CMAKE_CURRENT_SOURCE_DIR}/extern/borealis/library/lib/extern/angle/android/arm64-v8a/libEGL_angle.so
     # ${CMAKE_CURRENT_SOURCE_DIR}/extern/borealis/library/lib/extern/angle/android/arm64-v8a/libGLESv2_angle.so
     )
@@ -795,7 +795,7 @@ elseif (PLATFORM_IOS)
             "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}"
             "${VERSION_BUILD}")
 
-    set_target_properties(${PROJECT_NAME} PROPERTIES 
+    set_target_properties(${PROJECT_NAME} PROPERTIES
         INSTALL_RPATH @executable_path/Frameworks
         XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON
         MACOSX_BUNDLE_COPYRIGHT "Copyright 2026 ${PROJECT_AUTHOR}"
@@ -843,7 +843,7 @@ elseif (PLATFORM_TVOS)
             ${PROJECT_NAME}
             "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}"
             "${VERSION_BUILD}")
-    set_target_properties(${PROJECT_NAME} PROPERTIES 
+    set_target_properties(${PROJECT_NAME} PROPERTIES
         INSTALL_RPATH @executable_path/Frameworks
         XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON
         MACOSX_BUNDLE_COPYRIGHT "Copyright 2026 ${PROJECT_AUTHOR}"
