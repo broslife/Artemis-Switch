@@ -1,11 +1,9 @@
 name: Docs
 
 on:
-  push:
-    branches: ["main"]
-    paths:
-      - "docs/**"
-      - ".github/workflows/docs.yml"
+  # Manual only: docs/requirements.txt no longer exists, so a push-triggered
+  # build failed on every docs change. Restore the file before turning the
+  # push trigger back on.
   workflow_dispatch:
 
 permissions:
