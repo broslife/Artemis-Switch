@@ -4,8 +4,9 @@ on:
   # agent/** and feature/** pushes were the bulk of the August 8 run burst.
   # Topic branches are covered by pull_request; pushing to one no longer starts
   # a second, duplicate run.
-  push:
-    branches: ["main"]
+  # Runs on pull requests only: the PR already tested the code that is merged,
+  # so a second run on main would repeat it. Re-add push to main if several
+  # people merge at the same time.
   pull_request:
     branches: ["main"]
   workflow_dispatch:

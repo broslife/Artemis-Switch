@@ -3,9 +3,9 @@ name: Feature and Integration CI
 on:
   # Topic branches run through pull_request. Keeping agent/** and feature/**
   # here as well meant two runs per update on any branch with an open PR.
-  push:
-    branches:
-      - main
+  # Runs on pull requests only: the PR already tested the code that is merged,
+  # so a second run on main would repeat it. Re-add push to main if several
+  # people merge at the same time.
   pull_request:
     branches:
       - main
